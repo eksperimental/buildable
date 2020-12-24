@@ -9,25 +9,13 @@ defmodule Buildable.Use do
   defmacro __using__(_using_options) do
     quote do
       @impl true
-      def new(enumerable) do
-        Enum.into(enumerable, empty())
-      end
-
-      @impl true
-      def new(enumerable, options) when is_list(options) do
-        Enum.into(enumerable, empty(options))
-      end
-
-      @impl true
-      def new(enumerable, transform_fun)
-          when is_function(transform_fun, 1) do
-        Enum.into(enumerable, empty(), transform_fun)
-      end
-
-      @impl true
-      def new(enumerable, transform_fun, options)
+      def new(enumerable, options \\ [], transform_fun \\ &Function.identity/1)
           when is_function(transform_fun, 1) and is_list(options) do
-        Enum.into(enumerable, empty(options), transform_fun)
+        if transform_fun == (&Function.identity/1) do
+          Enum.into(enumerable, empty(options))
+        else
+          Enum.into(enumerable, empty(options), transform_fun)
+        end
       end
 
       defoverridable new: 1, new: 2, new: 3
