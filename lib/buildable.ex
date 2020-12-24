@@ -26,8 +26,8 @@ defprotocol Buildable do
   @callback empty(options) :: t
   @callback new(Enum.t()) :: t
   @callback new(Enum.t(), options) :: t
-  @callback new(Enum.t(), options, transform_fun :: (term() -> term())) :: t
-  @optional_callbacks new: 3
+  @callback new_transform(Enum.t(), transform_fun :: (term() -> term()), options) :: t
+  @optional_callbacks new_transform: 3
 
   @spec put(t, term, position) :: t
   def put(buildable, term, position \\ nil)
