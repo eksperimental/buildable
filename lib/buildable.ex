@@ -1,13 +1,12 @@
 defprotocol Buildable do
+  @moduledoc """
+  Documentation for `Buildable`.
+  """
   @type t :: term()
   @type element :: term()
   @type position :: :start | :end | nil
   @type options :: keyword()
   @type transform_fun :: (term() -> term())
-
-  @moduledoc """
-  Documentation for `Buildable`.
-  """
 
   @callback empty() :: t()
   @callback empty(options) :: t()

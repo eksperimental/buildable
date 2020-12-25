@@ -1,10 +1,16 @@
 defprotocol Buildable.Reducible do
-  @type acc :: {:cont, term()} | {:halt, term()} | {:suspend, term()}
-
   @moduledoc """
   Documentation for `Buildable.Reducible`.
   """
-  # @spec reduce(t(), acc(), reducer()) :: result()
+  @type acc :: {:cont, term()} | {:halt, term()} | {:suspend, term()}
+  @type continuation :: (acc -> result)
+  @type reducer :: (element :: term, current_acc :: acc -> updated_acc :: acc)
+  @type result ::
+          {:done, term}
+          | {:halted, term}
+          | {:suspended, term, continuation}
+
+  @spec reduce(t(), acc(), reducer()) :: result()
   def reduce(buildable, acc, fun)
 end
 
