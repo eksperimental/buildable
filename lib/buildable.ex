@@ -46,7 +46,8 @@ defimpl Buildable, for: List do
   end
 
   def put(list, term, :end) do
-    reverse(list, [term])
+    list
+    |> reverse([term])
     |> reverse()
   end
 
