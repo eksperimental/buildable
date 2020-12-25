@@ -17,18 +17,18 @@ defprotocol Buildable do
   @type element :: term()
   @type position :: :start | :end | nil
   @type options :: keyword()
+  @type transform_fun :: (term() -> term())
 
   @moduledoc """
   Documentation for `Buildable`.
   """
 
-  @callback empty() :: t
-  @callback empty(options) :: t
-  @callback new(Enum.t()) :: t
-  @callback new(Enum.t(), options) :: t
-  @callback new_transform(Enum.t(), transform_fun :: (term() -> term())) :: t
-  @callback new_transform(Enum.t(), transform_fun :: (term() -> term()), options) :: t
-  @optional_callbacks new_transform: 2, new_transform: 3
+  @callback empty() :: t()
+  @callback empty(options) :: t()
+  @callback new(Enum.t()) :: t()
+  @callback new(Enum.t(), options()) :: t()
+  @callback into(Enum.t(), t()) :: t()
+  @callback into(Enum.t(), t(), transform_fun()) :: t()
 
   @spec put(t(), term, position()) :: updated_buildable :: t()
   def put(buildable, term, position \\ nil)

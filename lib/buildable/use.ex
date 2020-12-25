@@ -2,7 +2,8 @@ defmodule Buildable.Use do
   @moduledoc """
   Convenience module providing the `__using__/1` macro.
 
-  It defines the default implementations for `c:Buildable.new/1`, `c:Buildable.new/2`, `c:Buildable.new_transform/3`. 
+  It defines the default implementations for `c:Buildable.new/1`,
+  `c:Buildable.new/2`, `c:Buildable.into/2`, `c:Buildable.into/3`.
 
   To use it call `use Buildable.Use`.
   """
@@ -10,16 +11,20 @@ defmodule Buildable.Use do
     quote do
       @impl true
       def new(enumerable, options \\ []) when is_list(options) do
-        Enum.into(enumerable, empty(options))
+        into(enumerable, empty(options))
       end
 
       @impl true
-      def new_transform(enumerable, transform_fun, options \\ [])
-          when is_function(transform_fun, 1) and is_list(options) do
-        Enum.into(enumerable, empty(options), transform_fun)
+      def into(enumerable, buildable) do
+        Enum.into(enumerable, buildable)
       end
 
-      defoverridable new: 1, new: 2, new_transform: 3
+      @impl true
+      def into(enumerable, buildable, transform_fun) when is_function(transform_fun, 1) do
+        Enum.into(enumerable, buildable, transform_fun)
+      end
+
+      defoverridable new: 1, new: 2, into: 2, into: 3
     end
   end
 end
