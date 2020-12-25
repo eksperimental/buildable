@@ -14,9 +14,9 @@
 
 defprotocol Buildable do
   @type t :: term()
+  @type element :: term()
   @type position :: :start | :end | nil
-  @type option :: {key :: atom(), value :: any}
-  @type options :: [option]
+  @type options :: keyword()
 
   @moduledoc """
   Documentation for `Buildable`.
@@ -30,14 +30,15 @@ defprotocol Buildable do
   @callback new_transform(Enum.t(), transform_fun :: (term() -> term()), options) :: t
   @optional_callbacks new_transform: 2, new_transform: 3
 
-  @spec put(buildable :: t(), term, position()) :: updated_buildable :: t()
+  @spec put(t(), term, position()) :: updated_buildable :: t()
   def put(buildable, term, position \\ nil)
 
-  @spec pop(buildable :: t(), position()) ::
-          {:ok, element :: t(), updated_buildable :: t()} | :error
+  @spec pop(t(), position()) ::
+          {:ok, element(), updated_buildable :: t()} | :error
   def pop(buildable, position \\ nil)
 
-  @spec reverse(t) :: t
+  @spec reverse(buildable) :: updated_buildable | buildable
+        when buildable: t(), updated_buildable: t()
   def reverse(buildable)
 end
 
