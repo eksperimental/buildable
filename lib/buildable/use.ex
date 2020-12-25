@@ -14,7 +14,7 @@ defmodule Buildable.Use do
       end
 
       @impl true
-      def new_transform(enumerable, transform_fun, options)
+      def new_transform(enumerable, transform_fun, options \\ [])
           when is_function(transform_fun, 1) and is_list(options) do
         Enum.into(enumerable, empty(options), transform_fun)
       end

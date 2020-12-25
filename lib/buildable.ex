@@ -26,13 +26,15 @@ defprotocol Buildable do
   @callback empty(options) :: t
   @callback new(Enum.t()) :: t
   @callback new(Enum.t(), options) :: t
+  @callback new_transform(Enum.t(), transform_fun :: (term() -> term())) :: t
   @callback new_transform(Enum.t(), transform_fun :: (term() -> term()), options) :: t
-  @optional_callbacks new_transform: 3
+  @optional_callbacks new_transform: 2, new_transform: 3
 
-  @spec put(t, term, position) :: t
+  @spec put(buildable :: t(), term, position()) :: updated_buildable :: t()
   def put(buildable, term, position \\ nil)
 
-  @spec pop(t, position) :: t
+  @spec pop(buildable :: t(), position()) ::
+          {:ok, element :: t(), updated_buildable :: t()} | :error
   def pop(buildable, position \\ nil)
 
   @spec reverse(t) :: t
@@ -103,13 +105,13 @@ defimpl Buildable, for: Map do
   @impl true
   def pop(map, position) when map_size(map) > 0 and position in [:start, nil] do
     [key | _] = Map.keys(map)
-    {value, rest} = Map.pop(map, key)
+    {value, rest} = Map.pop!(map, key)
     {:ok, {key, value}, rest}
   end
 
   def pop(map, :end) when map_size(map) > 0 do
     [key | _] = :lists.reverse(Map.keys(map))
-    {value, rest} = Map.pop(map, key)
+    {value, rest} = Map.pop!(map, key)
     {:ok, {key, value}, rest}
   end
 

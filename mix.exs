@@ -4,10 +4,13 @@ defmodule Buildable.MixProject do
   def project do
     [
       app: :buildable,
+      aliases: aliases(),
       version: "0.1.0",
       elixir: "~> 1.11",
       start_permanent: Mix.env() == :prod,
-      deps: deps()
+      deps: deps(),
+      elixirc_paths: elixirc_paths(Mix.env()),
+      preferred_cli_env: ["test.all": :test]
     ]
   end
 
@@ -23,8 +26,19 @@ defmodule Buildable.MixProject do
     [
       {:benchee, "~> 1.0", only: :dev},
       {:credo, "~> 1.5", only: [:dev, :test], runtime: false},
-      {:dialyxir, "~> 1.0", only: [:dev], runtime: false},
-      {:ex_doc, "~> 0.23", only: :dev, runtime: false}
+      {:dialyxir, "~> 1.0", only: [:dev, :test], runtime: false},
+      {:ex_doc, "~> 0.23", only: [:dev, :test], runtime: false}
+    ]
+  end
+
+  # Helpers
+  defp elixirc_paths(:test), do: ["lib", "test/protocols"]
+  defp elixirc_paths(_), do: ["lib"]
+
+  defp aliases do
+    [
+      "test.all": ["lint", "docs", "credo", "dialyzer", "test"],
+      lint: ["format --check-formatted"]
     ]
   end
 end
