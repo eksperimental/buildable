@@ -1,17 +1,3 @@
-# Notes
-# We need to extend the Collectable protocol, that implements,
-# 
-#
-
-# Buildable
-# - empty
-# - append (same as into) and pop (put_end, delete_end)  / put(Collectable.t, term | {key, value}, :start | :end | nil) 
-# - queue and dequeue (put_start, delete_start) / pop(Collectable.t, term | {key, value}, :start | :end | nil)
-# - reverse
-
-# Reducible:
-# - reduce that keeps the original format of the collectable
-
 defprotocol Buildable do
   @type t :: term()
   @type element :: term()
