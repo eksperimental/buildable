@@ -9,19 +9,13 @@ defmodule Buildable.Use do
   """
   defmacro __using__(_using_options) do
     quote do
-      @impl true
       def new(enumerable, options \\ []) when is_list(options) do
         into(enumerable, empty(options))
       end
 
-      @impl true
-      def into(enumerable, buildable) do
-        Enum.into(enumerable, buildable)
-      end
-
-      @impl true
-      def into(enumerable, buildable, transform_fun) when is_function(transform_fun, 1) do
-        Enum.into(enumerable, buildable, transform_fun)
+      def into(buildable, enumerable, transform_fun \\ &Function.identity/1)
+          when is_function(transform_fun, 1) do
+        Enum.into(buildable, enumerable, transform_fun)
       end
 
       defoverridable new: 1, new: 2, into: 2, into: 3

@@ -12,8 +12,9 @@ defprotocol Buildable do
   @callback empty(options) :: t()
   @callback new(Enum.t()) :: t()
   @callback new(Enum.t(), options()) :: t()
-  @callback into(Enum.t(), t()) :: t()
-  @callback into(Enum.t(), t(), transform_fun()) :: t()
+
+  @spec into(t(), Enum.t(), transform_fun()) :: t()
+  def into(buildable, term, transform_fun \\ &Function.identity/1)
 
   @spec put(t(), term, position()) :: updated_buildable :: t()
   def put(buildable, term, position \\ nil)
