@@ -16,9 +16,7 @@ end
 
 defimpl Buildable.Reducible, for: List do
   @impl true
-  def reduce(list, acc, fun) do
-    Enumerable.List.reduce(list, acc, fun)
-  end
+  defdelegate reduce(list, acc, fun), to: Enumerable
 end
 
 defimpl Buildable.Reducible, for: Map do
@@ -41,20 +39,20 @@ end
 
 defimpl Buildable.Reducible, for: MapSet do
   @impl true
-  def reduce(_map_set, {:halt, acc}, _fun),
+  def reduce(_struct, {:halt, acc}, _fun),
     do: {:halted, acc}
 
-  def reduce(map_set, {:suspend, acc}, fun),
-    do: {:suspended, acc, &reduce(map_set, &1, fun)}
+  def reduce(struct, {:suspend, acc}, fun),
+    do: {:suspended, acc, &reduce(struct, &1, fun)}
 
-  def reduce(map_set, {:cont, acc}, fun) do
-    case MapSet.size(map_set) do
+  def reduce(struct, {:cont, acc}, fun) do
+    case MapSet.size(struct) do
       0 ->
         {:done, acc}
 
       _ ->
-        {:ok, element, map_updated} = Buildable.MapSet.pop(map_set, :start)
-        reduce(map_updated, fun.(element, acc), fun)
+        {:ok, element, struct_updated} = Buildable.MapSet.pop(struct, :start)
+        reduce(struct_updated, fun.(element, acc), fun)
     end
   end
 end

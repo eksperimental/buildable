@@ -10,6 +10,8 @@ defmodule Buildable.Use do
   """
   defmacro __using__(_using_options) do
     quote do
+      # Behaviour callbacks
+
       @impl Buildable
       def empty(_buildable, options) do
         empty(options)
@@ -17,16 +19,20 @@ defmodule Buildable.Use do
 
       @impl Buildable
       def new(enumerable, options \\ []) when is_list(options) do
-        into(empty(options), enumerable)
+        Build.into(empty(options), enumerable)
       end
+
+      # Protocol callbacks
+      @impl true
+      defdelegate into(buildable), to: Collectable
 
       @impl Buildable
       def into(buildable, enumerable, transform_fun \\ &Function.identity/1)
           when is_function(transform_fun, 1) do
-        Enum.into(enumerable, buildable, transform_fun)
+        Build.into(buildable, enumerable, transform_fun)
       end
 
-      defoverridable empty: 2, new: 1, new: 2, into: 2, into: 3
+      defoverridable empty: 2, new: 1, new: 2, into: 1, into: 2, into: 3
     end
   end
 end

@@ -15,6 +15,9 @@ defmodule Foo do
   defdelegate new(enumerable, options \\ []), to: Buildable.Foo
 
   @impl true
+  defdelegate into(buildable), to: Buildable
+
+  @impl true
   defdelegate into(buildable, term, transform_fun \\ &Function.identity/1), to: Buildable
 
   @impl true
@@ -62,6 +65,22 @@ defimpl Buildable, for: Foo do
   defguard size(struct) when map_size(:erlang.map_get(:map, struct))
 
   @impl true
+  def into(struct) do
+    fun = fn
+      struct_acc, {:cont, {key, value}} ->
+        %{struct | map: Map.put(struct_acc.map, key, value)}
+
+      struct_acc, :done ->
+        struct_acc
+
+      _struct_acc, :halt ->
+        :ok
+    end
+
+    {empty(), fun}
+  end
+
+  @impl true
   def pop(struct, position \\ nil)
 
   def pop(%Foo{map: map} = struct, position)
@@ -93,23 +112,29 @@ defimpl Buildable, for: Foo do
   end
 end
 
-defimpl Collectable, for: Foo do
+defimpl Buildable.Reducible, for: Foo do
+  require Buildable.Foo
   @impl true
-  def into(struct) do
-    fun = fn
-      struct_acc, {:cont, {key, value}} ->
-        %{struct | map: Map.put(struct_acc.map, key, value)}
+  def reduce(_struct, {:halt, acc}, _fun),
+    do: {:halted, acc}
 
-      struct_acc, :done ->
-        struct_acc
+  def reduce(struct, {:suspend, acc}, fun),
+    do: {:suspended, acc, &reduce(struct, &1, fun)}
 
-      _map_acc, :halt ->
-        :ok
-    end
+  def reduce(struct, {:cont, acc}, fun) when Buildable.Foo.size(struct) > 0 do
+    {:ok, element, struct_updated} = Buildable.Foo.pop(struct, :start)
+    reduce(struct_updated, fun.(element, acc), fun)
+  end
 
-    {struct, fun}
+  def reduce(_struct, {:cont, acc}, _fun) do
+    {:done, acc}
   end
 end
+
+# defimpl Collectable, for: Foo do
+#   @impl true
+#   defdelegate into(struct), to: Buildable
+# end
 
 defimpl Inspect, for: Foo do
   import Inspect.Algebra

@@ -7,6 +7,7 @@ defprotocol Buildable do
   @type position :: :start | :end | nil
   @type options :: keyword()
   @type transform_fun :: (term() -> term())
+  @type command :: {:cont, term()} | :done | :halt
 
   @callback empty() :: t()
   @callback empty(options) :: t()
@@ -17,6 +18,9 @@ defprotocol Buildable do
 
   @spec empty(t(), options) :: t()
   def empty(buildable, options)
+
+  @spec into(t) :: {initial_acc :: term, collector :: (term, command -> t | term)}
+  def into(buildable)
 
   @spec into(t(), Enum.t(), transform_fun()) :: t()
   def into(buildable, term, transform_fun \\ &Function.identity/1)
