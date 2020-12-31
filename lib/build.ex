@@ -5,7 +5,11 @@ defmodule Build do
   @type t :: Buildable.t()
   @type element :: Buildable.element()
   @type position :: Buildable.position()
+  @type options :: Buildable.options()
   @type transform_fun :: Buildable.transform_fun()
+
+  @spec empty(t(), options) :: t()
+  defdelegate empty(enumerable, options), to: Buildable
 
   @spec into(t(), Enum.t(), transform_fun()) :: t()
   defdelegate into(enumerable, buildable, transform_fun \\ &Function.identity/1),

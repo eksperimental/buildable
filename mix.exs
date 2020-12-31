@@ -10,7 +10,8 @@ defmodule Buildable.MixProject do
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       elixirc_paths: elixirc_paths(Mix.env()),
-      preferred_cli_env: ["test.all": :test]
+      preferred_cli_env: ["test.all": :test],
+      test_coverage: [tool: Coverex.Task]
     ]
   end
 
@@ -27,7 +28,8 @@ defmodule Buildable.MixProject do
       {:benchee, "~> 1.0", only: :dev},
       {:credo, "~> 1.5", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.0", only: [:dev, :test], runtime: false},
-      {:ex_doc, "~> 0.23", only: [:dev, :test], runtime: false}
+      {:ex_doc, "~> 0.23", only: [:dev, :test], runtime: false},
+      {:coverex, "~> 1.5", only: :test}
     ]
   end
 
