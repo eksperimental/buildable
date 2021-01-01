@@ -5,38 +5,7 @@ defmodule Foo do
 
   @behaviour Buildable
 
-  @impl true
-  defdelegate empty(options \\ []), to: Buildable.Foo
-
-  @impl true
-  defdelegate empty(buildable, options), to: Buildable
-
-  @impl true
-  defdelegate default_position(function_name), to: Buildable.Foo
-
-  @impl true
-  defdelegate new(enumerable, options \\ []), to: Buildable.Foo
-
-  @impl true
-  defdelegate into(buildable), to: Buildable
-
-  @impl true
-  defdelegate into(buildable, term, transform_fun \\ &Function.identity/1), to: Buildable
-
-  @impl true
-  defdelegate pop(buildable), to: Buildable
-
-  @impl true
-  defdelegate pop(buildable, position), to: Buildable
-
-  @impl true
-  defdelegate put(buildable, term), to: Buildable
-
-  @impl true
-  defdelegate put(buildable, term, position), to: Buildable
-
-  @impl true
-  defdelegate reverse(buildable), to: Buildable
+  use Buildable.Boilerplate
 end
 
 defimpl Buildable, for: Foo do
