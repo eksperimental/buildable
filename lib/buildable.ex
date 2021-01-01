@@ -46,8 +46,6 @@ defprotocol Buildable do
 end
 
 defimpl Buildable, for: List do
-  import Buildable.Util, only: [is_position: 1]
-
   use Buildable.Use
 
   @impl true
@@ -85,8 +83,6 @@ defimpl Buildable, for: List do
 end
 
 defimpl Buildable, for: Map do
-  import Buildable.Util, only: [is_position: 1]
-
   use Buildable.Use
 
   @impl true
@@ -123,8 +119,6 @@ defimpl Buildable, for: Map do
 end
 
 defimpl Buildable, for: MapSet do
-  import Buildable.Util, only: [is_position: 1]
-
   use Buildable.Use
 
   @impl true
@@ -163,8 +157,6 @@ defimpl Buildable, for: MapSet do
 end
 
 defimpl Buildable, for: Tuple do
-  import Buildable.Util, only: [is_position: 1]
-
   use Buildable.Use
 
   @impl true

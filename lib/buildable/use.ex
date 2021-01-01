@@ -10,6 +10,8 @@ defmodule Buildable.Use do
   """
   defmacro __using__(_using_options) do
     quote do
+      import Buildable.Util, only: [is_position: 1]
+
       # Behaviour callbacks
 
       @impl true
@@ -17,16 +19,16 @@ defmodule Buildable.Use do
       def default_position(:pop), do: :start
 
       @impl true
-      def empty(_buildable, options) do
-        empty(options)
-      end
-
-      @impl true
       def new(enumerable, options \\ []) when is_list(options) do
         Build.into(empty(options), enumerable)
       end
 
       # Protocol callbacks
+      @impl true
+      def empty(_buildable, options) do
+        empty(options)
+      end
+
       @impl true
       def pop(buildable), do: pop(buildable, default_position(:pop))
 
