@@ -12,6 +12,9 @@ defmodule Foo do
   defdelegate empty(buildable, options), to: Buildable
 
   @impl true
+  defdelegate default_position(function_name), to: Buildable.Foo
+
+  @impl true
   defdelegate new(enumerable, options \\ []), to: Buildable.Foo
 
   @impl true
@@ -21,10 +24,16 @@ defmodule Foo do
   defdelegate into(buildable, term, transform_fun \\ &Function.identity/1), to: Buildable
 
   @impl true
-  defdelegate pop(buildable, position \\ nil), to: Buildable
+  defdelegate pop(buildable), to: Buildable
 
   @impl true
-  defdelegate put(buildable, term, position \\ nil), to: Buildable
+  defdelegate pop(buildable, position), to: Buildable
+
+  @impl true
+  defdelegate put(buildable, term), to: Buildable
+
+  @impl true
+  defdelegate put(buildable, term, position), to: Buildable
 
   @impl true
   defdelegate reverse(buildable), to: Buildable
@@ -64,27 +73,15 @@ defimpl Buildable, for: Foo do
   #                 map_size(:erlang.map_get(:map, struct))
   defguard size(struct) when map_size(:erlang.map_get(:map, struct))
 
+  # Protocol callbacks
   @impl true
-  def into(struct) do
-    fun = fn
-      struct_acc, {:cont, {key, value}} ->
-        %{struct | map: Map.put(struct_acc.map, key, value)}
-
-      struct_acc, :done ->
-        struct_acc
-
-      _struct_acc, :halt ->
-        :ok
-    end
-
-    {empty(), fun}
-  end
+  defdelegate into(buildable), to: Buildable.Collectable.Any
 
   @impl true
-  def pop(struct, position \\ nil)
+  def pop(struct, position)
 
-  def pop(%Foo{map: map} = struct, position)
-      when size(struct) > 0 and position in [:start, nil] do
+  def pop(%Foo{map: map} = struct, :start)
+      when size(struct) > 0 do
     [key | _] = Map.keys(map)
     {value, rest} = Map.pop!(map, key)
     {:ok, {key, value}, %{struct | map: rest}}
@@ -101,7 +98,7 @@ defimpl Buildable, for: Foo do
   end
 
   @impl true
-  def put(%Foo{map: map} = struct, {key, value}, position \\ nil) when is_position(position) do
+  def put(%Foo{map: map} = struct, {key, value}, position) when is_position(position) do
     # put_in(struct, [key], value)
     %{struct | map: put_in(map, [key], value)}
   end
@@ -114,6 +111,7 @@ end
 
 defimpl Buildable.Reducible, for: Foo do
   require Buildable.Foo
+
   @impl true
   def reduce(_struct, {:halt, acc}, _fun),
     do: {:halted, acc}
@@ -131,10 +129,23 @@ defimpl Buildable.Reducible, for: Foo do
   end
 end
 
-# defimpl Collectable, for: Foo do
-#   @impl true
-#   defdelegate into(struct), to: Buildable
-# end
+defimpl Collectable, for: Foo do
+  @impl true
+  def into(struct) do
+    fun = fn
+      struct_acc, {:cont, {key, value}} ->
+        %{struct | map: Map.put(struct_acc.map, key, value)}
+
+      struct_acc, :done ->
+        struct_acc
+
+      _struct_acc, :halt ->
+        :ok
+    end
+
+    {Buildable.Foo.empty(), fun}
+  end
+end
 
 defimpl Inspect, for: Foo do
   import Inspect.Algebra

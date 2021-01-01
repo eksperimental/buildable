@@ -4,7 +4,7 @@ defprotocol Buildable do
   """
   @type t :: term()
   @type element :: term()
-  @type position :: :start | :end | nil
+  @type position :: :start | :end
   @type options :: keyword()
   @type transform_fun :: (term() -> term())
   @type command :: {:cont, term()} | :done | :halt
@@ -13,6 +13,7 @@ defprotocol Buildable do
   @callback empty(options) :: t()
   @callback new(Enum.t()) :: t()
   @callback new(Enum.t(), options()) :: t()
+  @callback default_position(function_name :: :pop | :put) :: position()
 
   @optional_callbacks empty: 0, new: 1
 
@@ -25,12 +26,19 @@ defprotocol Buildable do
   @spec into(t(), Enum.t(), transform_fun()) :: t()
   def into(buildable, term, transform_fun \\ &Function.identity/1)
 
+  @spec pop(t()) ::
+          {:ok, element(), updated_buildable :: t()} | :error
+  def pop(buildable)
+
   @spec pop(t(), position()) ::
           {:ok, element(), updated_buildable :: t()} | :error
-  def pop(buildable, position \\ nil)
+  def pop(buildable, position)
+
+  @spec put(t(), term) :: updated_buildable :: t()
+  def put(buildable, term)
 
   @spec put(t(), term, position()) :: updated_buildable :: t()
-  def put(buildable, term, position \\ nil)
+  def put(buildable, term, position)
 
   @spec reverse(buildable) :: updated_buildable | buildable
         when buildable: t(), updated_buildable: t()
@@ -55,11 +63,14 @@ defimpl Buildable, for: List do
   end
 
   @impl true
+  defdelegate into(list), to: Buildable.Collectable
+
+  @impl true
   def pop([], position) when is_position(position) do
     :error
   end
 
-  def pop([head | rest], position) when position in [:start, nil] do
+  def pop([head | rest], :start) do
     {:ok, head, rest}
   end
 
@@ -69,7 +80,7 @@ defimpl Buildable, for: List do
   end
 
   @impl true
-  def put(list, term, position) when position in [:start, nil] do
+  def put(list, term, :start) do
     [term | list]
   end
 
@@ -105,7 +116,7 @@ defimpl Buildable, for: Map do
   end
 
   @impl true
-  def pop(map, position) when map_size(map) > 0 and position in [:start, nil] do
+  def pop(map, :start) when map_size(map) > 0 do
     [key | _] = Map.keys(map)
     {value, rest} = Map.pop!(map, key)
     {:ok, {key, value}, rest}
@@ -150,11 +161,11 @@ defimpl Buildable, for: MapSet do
   @impl true
   def pop(map_set, position) when is_position(position) do
     if MapSet.size(map_set) > 0 do
-      cond do
-        position in [:start, nil] ->
+      case position do
+        :start ->
           pop_by_index(map_set, 0)
 
-        position in [:end] ->
+        :end ->
           pop_by_index(map_set, -1)
       end
     else
@@ -204,7 +215,7 @@ defimpl Buildable, for: Tuple do
     :error
   end
 
-  def pop(tuple, position) when position in [:start, nil] do
+  def pop(tuple, :start) do
     element = elem(tuple, 0)
     {:ok, element, Tuple.delete_at(tuple, 0)}
   end
@@ -216,7 +227,7 @@ defimpl Buildable, for: Tuple do
   end
 
   @impl true
-  def put(tuple, term, position) when position in [:start, nil] do
+  def put(tuple, term, :start) do
     Tuple.insert_at(tuple, 0, term)
   end
 
