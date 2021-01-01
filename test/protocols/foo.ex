@@ -129,23 +129,23 @@ defimpl Buildable.Reducible, for: Foo do
   end
 end
 
-defimpl Collectable, for: Foo do
-  @impl true
-  def into(struct) do
-    fun = fn
-      struct_acc, {:cont, {key, value}} ->
-        %{struct | map: Map.put(struct_acc.map, key, value)}
+# defimpl Collectable, for: Foo do
+#   @impl true
+#   def into(struct) do
+#     fun = fn
+#       struct_acc, {:cont, {key, value}} ->
+#         %{struct | map: Map.put(struct_acc.map, key, value)}
 
-      struct_acc, :done ->
-        struct_acc
+#       struct_acc, :done ->
+#         struct_acc
 
-      _struct_acc, :halt ->
-        :ok
-    end
+#       _struct_acc, :halt ->
+#         :ok
+#     end
 
-    {Buildable.Foo.empty(), fun}
-  end
-end
+#     {Buildable.Foo.empty(), fun}
+#   end
+# end
 
 defimpl Inspect, for: Foo do
   import Inspect.Algebra

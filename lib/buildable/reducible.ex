@@ -10,6 +10,8 @@ defprotocol Buildable.Reducible do
           | {:halted, term}
           | {:suspended, term, continuation}
 
+  @fallback_to_any true
+
   @spec reduce(t(), acc(), reducer()) :: result()
   def reduce(buildable, acc, fun)
 end
@@ -19,58 +21,23 @@ defimpl Buildable.Reducible, for: List do
   defdelegate reduce(list, acc, fun), to: Enumerable
 end
 
-defimpl Buildable.Reducible, for: Map do
+defimpl Buildable.Reducible, for: Any do
   @impl true
-  def reduce(_map, {:halt, acc}, _fun),
+  def reduce(_buildable, {:halt, acc}, _fun),
     do: {:halted, acc}
 
-  def reduce(map, {:suspend, acc}, fun),
-    do: {:suspended, acc, &reduce(map, &1, fun)}
+  def reduce(buildable, {:suspend, acc}, fun),
+    do: {:suspended, acc, &reduce(buildable, &1, fun)}
 
-  def reduce(map, {:cont, acc}, fun) when map_size(map) > 0 do
-    {:ok, element, map_updated} = Buildable.Map.pop(map, :start)
-    reduce(map_updated, fun.(element, acc), fun)
-  end
+  def reduce(buildable, {:cont, acc}, fun) do
+    buildable_module = Buildable.impl_for(buildable)
 
-  def reduce(map, {:cont, acc}, _fun) when map_size(map) == 0 do
-    {:done, acc}
-  end
-end
+    case buildable_module.pop(buildable) do
+      {:ok, element, buildable_updated} ->
+        reduce(buildable_updated, fun.(element, acc), fun)
 
-defimpl Buildable.Reducible, for: MapSet do
-  @impl true
-  def reduce(_struct, {:halt, acc}, _fun),
-    do: {:halted, acc}
-
-  def reduce(struct, {:suspend, acc}, fun),
-    do: {:suspended, acc, &reduce(struct, &1, fun)}
-
-  def reduce(struct, {:cont, acc}, fun) do
-    case MapSet.size(struct) do
-      0 ->
+      :error ->
         {:done, acc}
-
-      _ ->
-        {:ok, element, struct_updated} = Buildable.MapSet.pop(struct, :start)
-        reduce(struct_updated, fun.(element, acc), fun)
     end
-  end
-end
-
-defimpl Buildable.Reducible, for: Tuple do
-  @impl true
-  def reduce(_tuple, {:halt, acc}, _fun),
-    do: {:halted, acc}
-
-  def reduce(tuple, {:suspend, acc}, fun),
-    do: {:suspended, acc, &reduce(tuple, &1, fun)}
-
-  def reduce(tuple, {:cont, acc}, fun) when tuple_size(tuple) > 0 do
-    {:ok, element, tuple_updated} = Buildable.Tuple.pop(tuple, :start)
-    reduce(tuple_updated, fun.(element, acc), fun)
-  end
-
-  def reduce({}, {:cont, acc}, _fun) do
-    {:done, acc}
   end
 end

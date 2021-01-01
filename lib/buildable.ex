@@ -63,9 +63,6 @@ defimpl Buildable, for: List do
   end
 
   @impl true
-  defdelegate into(list), to: Buildable.Collectable
-
-  @impl true
   def pop([], position) when is_position(position) do
     :error
   end
@@ -187,7 +184,7 @@ defimpl Buildable, for: MapSet do
   @impl true
   def reverse(map_set) do
     {:done, result} =
-      Buildable.Reducible.MapSet.reduce(map_set, {:cont, %MapSet{}}, fn x, acc ->
+      Buildable.Reducible.reduce(map_set, {:cont, %MapSet{}}, fn x, acc ->
         {:cont, Buildable.put(acc, x, :start)}
       end)
 
