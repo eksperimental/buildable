@@ -42,6 +42,19 @@ defmodule Buildable.Use do
         Build.into(buildable, enumerable, transform_fun)
       end
 
+      @impl true
+      def reverse(buildable) do
+        buildable_module = Buildable.impl_for(buildable)
+
+        {:done, result} =
+          Buildable.Reducible.reduce(buildable, {:cont, buildable_module.empty()}, fn element,
+                                                                                      acc ->
+            {:cont, buildable_module.put(acc, element)}
+          end)
+
+        result
+      end
+
       defoverridable empty: 2,
                      new: 1,
                      new: 2,
@@ -49,7 +62,8 @@ defmodule Buildable.Use do
                      into: 2,
                      into: 3,
                      pop: 1,
-                     put: 2
+                     put: 2,
+                     reverse: 1
     end
   end
 end

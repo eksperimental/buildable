@@ -46,8 +46,6 @@ defprotocol Buildable do
 end
 
 defimpl Buildable, for: List do
-  @compile {:inline, [reverse: 1, reverse: 2]}
-
   import Buildable.Util, only: [is_position: 1]
 
   use Buildable.Use
@@ -77,18 +75,12 @@ defimpl Buildable, for: List do
   end
 
   def put(list, term, :end) do
-    list
-    |> reverse([term])
-    |> reverse()
+    list ++ [term]
   end
 
   @impl true
   def reverse(list) do
     :lists.reverse(list)
-  end
-
-  defp reverse(list, term) do
-    :lists.reverse(list, term)
   end
 end
 
@@ -103,20 +95,20 @@ defimpl Buildable, for: Map do
   end
 
   @impl true
-  def pop(map, :start) when map_size(map) > 0 do
+  def pop(map, position) when map == %{} and is_position(position) do
+    :error
+  end
+
+  def pop(map, :start) do
     [key | _] = Map.keys(map)
     {value, rest} = Map.pop!(map, key)
     {:ok, {key, value}, rest}
   end
 
-  def pop(map, :end) when map_size(map) > 0 do
+  def pop(map, :end) do
     [key | _] = :lists.reverse(Map.keys(map))
     {value, rest} = Map.pop!(map, key)
     {:ok, {key, value}, rest}
-  end
-
-  def pop(map, position) when map_size(map) == 0 and is_position(position) do
-    :error
   end
 
   @impl true
@@ -141,24 +133,22 @@ defimpl Buildable, for: MapSet do
   end
 
   @impl true
-  def pop(map_set, position) when is_position(position) do
-    if MapSet.size(map_set) > 0 do
-      case position do
-        :start ->
-          pop_by_index(map_set, 0)
+  def pop(map_set, :start) do
+    pop_by_index(map_set, 0)
+  end
 
-        :end ->
-          pop_by_index(map_set, -1)
-      end
-    else
-      :error
-    end
+  def pop(map_set, :end) do
+    pop_by_index(map_set, -1)
   end
 
   defp pop_by_index(map_set, index) do
-    element = Enum.fetch!(map_set, index)
-    rest = MapSet.delete(map_set, element)
-    {:ok, element, rest}
+    case Enum.fetch(map_set, index) do
+      {:ok, element} ->
+        {:ok, element, MapSet.delete(map_set, element)}
+
+      :error ->
+        :error
+    end
   end
 
   @impl true
@@ -168,12 +158,7 @@ defimpl Buildable, for: MapSet do
 
   @impl true
   def reverse(map_set) do
-    {:done, result} =
-      Buildable.Reducible.reduce(map_set, {:cont, %MapSet{}}, fn x, acc ->
-        {:cont, Buildable.put(acc, x, :start)}
-      end)
-
-    result
+    map_set
   end
 end
 
@@ -210,13 +195,5 @@ defimpl Buildable, for: Tuple do
 
   def put(tuple, term, :end) do
     Tuple.append(tuple, term)
-  end
-
-  @impl true
-  def reverse(tuple) do
-    tuple
-    |> :erlang.tuple_to_list()
-    |> :lists.reverse()
-    |> :erlang.list_to_tuple()
   end
 end
