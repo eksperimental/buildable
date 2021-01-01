@@ -89,48 +89,17 @@ defimpl Buildable, for: Foo do
   end
 end
 
-defimpl Buildable.Reducible, for: Foo do
-  require Buildable.Foo
-
-  @impl true
-  def reduce(_struct, {:halt, acc}, _fun),
-    do: {:halted, acc}
-
-  def reduce(struct, {:suspend, acc}, fun),
-    do: {:suspended, acc, &reduce(struct, &1, fun)}
-
-  def reduce(struct, {:cont, acc}, fun) when Buildable.Foo.size(struct) > 0 do
-    {:ok, element, struct_updated} = Buildable.Foo.pop(struct, :start)
-    reduce(struct_updated, fun.(element, acc), fun)
-  end
-
-  def reduce(_struct, {:cont, acc}, _fun) do
-    {:done, acc}
-  end
-end
-
-# defimpl Collectable, for: Foo do
-#   @impl true
-#   def into(struct) do
-#     fun = fn
-#       struct_acc, {:cont, {key, value}} ->
-#         %{struct | map: Map.put(struct_acc.map, key, value)}
-
-#       struct_acc, :done ->
-#         struct_acc
-
-#       _struct_acc, :halt ->
-#         :ok
-#     end
-
-#     {Buildable.Foo.empty(), fun}
-#   end
-# end
-
 defimpl Inspect, for: Foo do
   import Inspect.Algebra
 
   def inspect(struct, opts) do
     concat(["#Foo<", to_doc(Map.to_list(struct.map), opts), ">"])
   end
+end
+
+# BONUS: If we want to implement the Collectable protocol, we just delegate
+# it to the generic implementation
+defimpl Collectable, for: Foo do
+  @impl true
+  defdelegate into(struct), to: Buildable.Collectable
 end
