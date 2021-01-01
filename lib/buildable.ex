@@ -58,11 +58,6 @@ defimpl Buildable, for: List do
   end
 
   @impl true
-  def empty(_list, options) do
-    empty(options)
-  end
-
-  @impl true
   def pop([], position) when is_position(position) do
     :error
   end
@@ -108,11 +103,6 @@ defimpl Buildable, for: Map do
   end
 
   @impl true
-  def empty(_map, options) do
-    empty(options)
-  end
-
-  @impl true
   def pop(map, :start) when map_size(map) > 0 do
     [key | _] = Map.keys(map)
     {value, rest} = Map.pop!(map, key)
@@ -148,11 +138,6 @@ defimpl Buildable, for: MapSet do
   @impl true
   def empty(_options \\ []) do
     %MapSet{}
-  end
-
-  @impl true
-  def empty(_map_set, options) do
-    empty(options)
   end
 
   @impl true
@@ -200,11 +185,6 @@ defimpl Buildable, for: Tuple do
   @impl true
   def empty(_options \\ []) do
     {}
-  end
-
-  @impl true
-  def empty(_tuple, options) do
-    empty(options)
   end
 
   @impl true
