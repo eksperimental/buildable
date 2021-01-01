@@ -1,5 +1,7 @@
 defmodule Foo do
-  @moduledoc false
+  @moduledoc """
+  Sample implementation of Buildable behaviour and protocol.
+  """
 
   defstruct map: %{}
 

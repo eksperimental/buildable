@@ -3,8 +3,7 @@ defmodule Buildable.Use do
   Convenience module providing the `__using__/1` macro.
 
   It defines the default implementations for `c:Buildable.empty/2`,
-  `c:Buildable.new/1`, `c:Buildable.new/2`,
-  `c:Buildable.into/2`, `c:Buildable.into/3`.
+  `c:Buildable.new/1`, `c:Buildable.new/2`.
 
   To use it call `use Buildable.Use`.
   """
@@ -30,19 +29,13 @@ defmodule Buildable.Use do
       end
 
       @impl true
+      defdelegate into(buildable), to: Buildable.Collectable
+
+      @impl true
       def pop(buildable), do: pop(buildable, default_position(:pop))
 
       @impl true
       def put(buildable, term), do: put(buildable, term, default_position(:put))
-
-      @impl true
-      defdelegate into(buildable), to: Buildable.Collectable
-
-      @impl true
-      def into(buildable, enumerable, transform_fun \\ &Function.identity/1)
-          when is_function(transform_fun, 1) do
-        Build.into(buildable, enumerable, transform_fun)
-      end
 
       @impl true
       def reverse(buildable) do
@@ -58,11 +51,9 @@ defmodule Buildable.Use do
       end
 
       defoverridable empty: 2,
+                     into: 1,
                      new: 1,
                      new: 2,
-                     into: 1,
-                     into: 2,
-                     into: 3,
                      pop: 1,
                      put: 2,
                      reverse: 1

@@ -23,9 +23,6 @@ defprotocol Buildable do
   @spec into(t) :: {initial_acc :: term, collector :: (term, command -> t | term)}
   def into(buildable)
 
-  @spec into(t(), Enum.t(), transform_fun()) :: t()
-  def into(buildable, term, transform_fun \\ &Function.identity/1)
-
   @spec pop(t()) ::
           {:ok, element(), updated_buildable :: t()} | :error
   def pop(buildable)

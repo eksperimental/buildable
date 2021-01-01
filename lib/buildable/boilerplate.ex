@@ -3,10 +3,6 @@ defmodule Buildable.Boilerplate do
   Convenience module providing the `__using__/1` macro to defined required function
   implementations in the module that implements the `Buildable` behaviour.
 
-  It defines the default implementations for `c:Buildable.empty/2`,
-  `c:Buildable.new/1`, `c:Buildable.new/2`,
-  `c:Buildable.into/2`, `c:Buildable.into/3`.
-
   To use it call `use Buildable.Boilerplate`.
   """
   defmacro __using__(_using_options) do
@@ -22,9 +18,6 @@ defmodule Buildable.Boilerplate do
 
       @impl true
       defdelegate into(buildable), to: Buildable
-
-      @impl true
-      defdelegate into(buildable, term, transform_fun \\ &Function.identity/1), to: Buildable
 
       @impl true
       defdelegate new(enumerable, options \\ []), to: Buildable.unquote(__CALLER__.module)
