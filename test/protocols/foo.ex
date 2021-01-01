@@ -37,25 +37,6 @@ defmodule Foo do
 
   @impl true
   defdelegate reverse(buildable), to: Buildable
-
-  # @behaviour Access
-
-  # @impl Access
-  # def fetch(%Foo{map: map}, key) do
-  #   Map.fetch(map, key)
-  # end
-
-  # @impl Access
-  # def get_and_update(%Foo{map: map} = struct, key, fun) do
-  #   {current_value, updated_map} = Map.get_and_update(map, key, fun)
-  #   {current_value, %{struct | map: updated_map}}
-  # end
-
-  # @impl Access
-  # def pop(%Foo{map: map} = struct, key) do
-  #   {current_value, updated_map} = Map.pop(map, key)
-  #   {current_value, %{struct | map: updated_map}}
-  # end 
 end
 
 defimpl Buildable, for: Foo do
@@ -99,7 +80,6 @@ defimpl Buildable, for: Foo do
 
   @impl true
   def put(%Foo{map: map} = struct, {key, value}, position) when is_position(position) do
-    # put_in(struct, [key], value)
     %{struct | map: put_in(map, [key], value)}
   end
 
