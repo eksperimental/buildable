@@ -3,11 +3,11 @@ defmodule Build do
   Module for building buildables.
   """
   @type t :: Buildable.t()
-  @type element :: Buildable.element()
-  @type position :: Buildable.position()
-  @type options :: Buildable.options()
-  @type transform_fun :: (term() -> term())
   @type acc :: Buildable.Reducible.acc()
+  @type element :: Buildable.element()
+  @type options :: Buildable.options()
+  @type position :: Buildable.position()
+  @type transform_fun :: (term() -> term())
 
   @compile {:inline, reduce: 3, reduce_buildable: 3}
 

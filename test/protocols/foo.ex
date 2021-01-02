@@ -7,13 +7,11 @@ defmodule Foo do
 
   @behaviour Buildable
 
-  use Buildable.Boilerplate
+  use Buildable.Delegation
 end
 
 defimpl Buildable, for: Foo do
-  import Buildable.Util, only: [is_position: 1]
-
-  use Buildable.Use
+  use Buildable.Implementation
 
   @impl true
   def empty(_options \\ []) do

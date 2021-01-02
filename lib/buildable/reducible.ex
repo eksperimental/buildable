@@ -2,6 +2,7 @@ defprotocol Buildable.Reducible do
   @moduledoc """
   Documentation for `Buildable.Reducible`.
   """
+  @type t :: Buildable.t()
   @type acc :: {:cont, term()} | {:halt, term()} | {:suspend, term()}
   @type continuation :: (acc -> result)
   @type reducer :: (element :: term, current_acc :: acc -> updated_acc :: acc)
@@ -12,7 +13,7 @@ defprotocol Buildable.Reducible do
 
   @fallback_to_any true
 
-  @spec reduce(t(), acc(), reducer()) :: result()
+  @spec reduce(Buildable.t(), acc(), reducer()) :: result()
   def reduce(buildable, acc, fun)
 end
 

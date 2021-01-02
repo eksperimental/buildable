@@ -1,9 +1,9 @@
-defmodule Buildable.Boilerplate do
+defmodule Buildable.Delegation do
   @moduledoc """
   Convenience module providing the `__using__/1` macro to defined required function
   implementations in the module that implements the `Buildable` behaviour.
 
-  To use it call `use Buildable.Boilerplate`.
+  To use it call `use Buildable.Delegation`.
   """
   defmacro __using__(_using_options) do
     quote do

@@ -3,6 +3,7 @@ defprotocol Buildable.Collectable do
   Documentation for `Buildable.Collectable`.
   """
 
+  @type t :: Buildable.t()
   @type command :: {:cont, term()} | :done | :halt
 
   @fallback_to_any true
