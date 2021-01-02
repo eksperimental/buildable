@@ -14,11 +14,11 @@ defmodule Buildable.Implementation do
       ##############################################
       # Behaviour callbacks
 
-      @impl true
+      @impl Buildable
       def default_position(:put), do: :start
       def default_position(:pop), do: :start
 
-      @impl true
+      @impl Buildable
       def new(enumerable, options \\ []) when is_list(options) do
         Build.into(empty(options), enumerable)
       end
@@ -29,21 +29,21 @@ defmodule Buildable.Implementation do
       ##############################################
       # Protocol callbacks
 
-      @impl true
+      @impl Buildable
       def empty(_buildable, options) do
         empty(options)
       end
 
-      @impl true
+      @impl Buildable
       defdelegate into(buildable), to: Buildable.Collectable
 
-      @impl true
+      @impl Buildable
       def pop(buildable), do: pop(buildable, default_position(:pop))
 
-      @impl true
+      @impl Buildable
       def put(buildable, term), do: put(buildable, term, default_position(:put))
 
-      @impl true
+      @impl Buildable
       def reverse(buildable) do
         buildable_module = Buildable.impl_for(buildable)
 

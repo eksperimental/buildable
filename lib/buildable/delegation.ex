@@ -7,34 +7,34 @@ defmodule Buildable.Delegation do
   """
   defmacro __using__(_using_options) do
     quote do
-      @impl true
+      @impl Buildable
       defdelegate default_position(function_name), to: Buildable.unquote(__CALLER__.module)
 
-      @impl true
+      @impl Buildable
       defdelegate empty(buildable, options), to: Buildable
 
-      @impl true
+      @impl Buildable
       defdelegate empty(options \\ []), to: Buildable.unquote(__CALLER__.module)
 
-      @impl true
+      @impl Buildable
       defdelegate into(buildable), to: Buildable
 
-      @impl true
+      @impl Buildable
       defdelegate new(enumerable, options \\ []), to: Buildable.unquote(__CALLER__.module)
 
-      @impl true
+      @impl Buildable
       defdelegate pop(buildable), to: Buildable
 
-      @impl true
+      @impl Buildable
       defdelegate pop(buildable, position), to: Buildable
 
-      @impl true
+      @impl Buildable
       defdelegate put(buildable, term), to: Buildable
 
-      @impl true
+      @impl Buildable
       defdelegate put(buildable, term, position), to: Buildable
 
-      @impl true
+      @impl Buildable
       defdelegate reverse(buildable), to: Buildable
     end
   end

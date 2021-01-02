@@ -2,6 +2,7 @@ defprotocol Buildable.Reducible do
   @moduledoc """
   Documentation for `Buildable.Reducible`.
   """
+
   @type t :: Buildable.t()
   @type acc :: {:cont, term()} | {:halt, term()} | {:suspend, term()}
   @type continuation :: (acc -> result)

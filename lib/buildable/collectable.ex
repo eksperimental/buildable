@@ -22,6 +22,7 @@ defimpl Buildable.Collectable, for: List do
 
       list_acc, :done ->
         # This the different than the Collectible.List implementation
+        # We allow inserting into non-empty lists
         :lists.reverse(list_acc) ++ list
 
       _list_acc, :halt ->
