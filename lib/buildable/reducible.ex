@@ -34,7 +34,7 @@ defimpl Buildable.Reducible, for: Any do
   def reduce(buildable, {:cont, acc}, fun) do
     buildable_module = Buildable.impl_for(buildable)
 
-    case buildable_module.pop(buildable) do
+    case buildable_module.extract(buildable) do
       {:ok, element, buildable_updated} ->
         reduce(buildable_updated, fun.(element, acc), fun)
 

@@ -23,16 +23,16 @@ defmodule Buildable.Delegation do
       defdelegate new(enumerable, options \\ []), to: Buildable.unquote(__CALLER__.module)
 
       @impl Buildable
-      defdelegate pop(buildable), to: Buildable
+      defdelegate extract(buildable), to: Buildable
 
       @impl Buildable
-      defdelegate pop(buildable, position), to: Buildable
+      defdelegate extract(buildable, position), to: Buildable
 
       @impl Buildable
-      defdelegate put(buildable, term), to: Buildable
+      defdelegate insert(buildable, term), to: Buildable
 
       @impl Buildable
-      defdelegate put(buildable, term, position), to: Buildable
+      defdelegate insert(buildable, term, position), to: Buildable
 
       @impl Buildable
       defdelegate reverse(buildable), to: Buildable

@@ -28,27 +28,27 @@ defimpl Buildable, for: Foo do
   defdelegate into(buildable), to: Buildable.Collectable.Any
 
   @impl true
-  def pop(struct, position)
+  def extract(struct, position)
 
-  def pop(%Foo{map: map} = struct, :start)
+  def extract(%Foo{map: map} = struct, :start)
       when size(struct) > 0 do
     [key | _] = Map.keys(map)
     {value, rest} = Map.pop!(map, key)
     {:ok, {key, value}, %{struct | map: rest}}
   end
 
-  def pop(%Foo{map: map} = struct, :end) when size(struct) > 0 do
+  def extract(%Foo{map: map} = struct, :end) when size(struct) > 0 do
     [key | _] = :lists.reverse(Map.keys(map))
     {value, rest} = Map.pop!(map, key)
     {:ok, {key, value}, %{struct | map: rest}}
   end
 
-  def pop(struct, position) when size(struct) == 0 and is_position(position) do
+  def extract(struct, position) when size(struct) == 0 and is_position(position) do
     :error
   end
 
   @impl true
-  def put(%Foo{map: map} = struct, {key, value}, position) when is_position(position) do
+  def insert(%Foo{map: map} = struct, {key, value}, position) when is_position(position) do
     %{struct | map: put_in(map, [key], value)}
   end
 

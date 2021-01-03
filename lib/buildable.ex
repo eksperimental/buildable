@@ -13,7 +13,7 @@ defprotocol Buildable do
   @callback empty(options()) :: t()
   @callback new(Enum.t()) :: t()
   @callback new(Enum.t(), options()) :: t()
-  @callback default_position(function_name :: :pop | :put) :: position()
+  @callback default_position(function_name :: :extract | :insert) :: position()
 
   @optional_callbacks empty: 0, new: 1
 
@@ -23,19 +23,19 @@ defprotocol Buildable do
   @spec into(t) :: {initial_acc :: term, collector :: (term, command -> t | term)}
   def into(buildable)
 
-  @spec pop(t()) ::
+  @spec extract(t()) ::
           {:ok, element(), updated_buildable :: t()} | :error
-  def pop(buildable)
+  def extract(buildable)
 
-  @spec pop(t(), position()) ::
+  @spec extract(t(), position()) ::
           {:ok, element(), updated_buildable :: t()} | :error
-  def pop(buildable, position)
+  def extract(buildable, position)
 
-  @spec put(t(), term) :: updated_buildable :: t()
-  def put(buildable, term)
+  @spec insert(t(), term) :: updated_buildable :: t()
+  def insert(buildable, term)
 
-  @spec put(t(), term, position()) :: updated_buildable :: t()
-  def put(buildable, term, position)
+  @spec insert(t(), term, position()) :: updated_buildable :: t()
+  def insert(buildable, term, position)
 
   @spec reverse(buildable) :: updated_buildable | buildable
         when buildable: t(), updated_buildable: t()

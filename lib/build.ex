@@ -133,19 +133,19 @@ defmodule Build do
     |> elem(1)
   end
 
-  @spec put(t(), term) :: updated_buildable :: t()
-  defdelegate put(buildable, term), to: Buildable
+  @spec insert(t(), term) :: updated_buildable :: t()
+  defdelegate insert(buildable, term), to: Buildable
 
-  @spec put(t(), term, position()) :: updated_buildable :: t()
-  defdelegate put(buildable, term, position), to: Buildable
+  @spec insert(t(), term, position()) :: updated_buildable :: t()
+  defdelegate insert(buildable, term, position), to: Buildable
 
-  @spec pop(t()) ::
+  @spec extract(t()) ::
           {:ok, element(), updated_buildable :: t()} | :error
-  defdelegate pop(buildable), to: Buildable
+  defdelegate extract(buildable), to: Buildable
 
-  @spec pop(t(), position()) ::
+  @spec extract(t(), position()) ::
           {:ok, element(), updated_buildable :: t()} | :error
-  defdelegate pop(buildable, position), to: Buildable
+  defdelegate extract(buildable, position), to: Buildable
 
   @spec reverse(buildable) :: updated_buildable | buildable
         when buildable: t(), updated_buildable: t()

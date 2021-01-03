@@ -15,18 +15,18 @@ defmodule BuildableTest do
 
     foo = %{__struct__: Foo, map: %{a: 2, b: 4, c: 6}}
 
-    assert Foo.pop(foo) == Foo.pop(foo, :start)
-    assert Foo.pop(foo, :start) == {:ok, {:a, 2}, %{__struct__: Foo, map: %{b: 4, c: 6}}}
+    assert Foo.extract(foo) == Foo.extract(foo, :start)
+    assert Foo.extract(foo, :start) == {:ok, {:a, 2}, %{__struct__: Foo, map: %{b: 4, c: 6}}}
 
-    assert Foo.pop(foo, :end) == {:ok, {:c, 6}, %{__struct__: Foo, map: %{a: 2, b: 4}}}
+    assert Foo.extract(foo, :end) == {:ok, {:c, 6}, %{__struct__: Foo, map: %{a: 2, b: 4}}}
 
-    assert Foo.put(foo, {:d, 8}) == %{__struct__: Foo, map: %{a: 2, b: 4, c: 6, d: 8}}
+    assert Foo.insert(foo, {:d, 8}) == %{__struct__: Foo, map: %{a: 2, b: 4, c: 6, d: 8}}
   end
 
   test "Build basic functions" do
     foo = %{__struct__: Foo, map: %{a: 2, b: 4, c: 6}}
 
-    assert Build.put(foo, {:d, 8}) == %{__struct__: Foo, map: %{a: 2, b: 4, c: 6, d: 8}}
+    assert Build.insert(foo, {:d, 8}) == %{__struct__: Foo, map: %{a: 2, b: 4, c: 6, d: 8}}
     assert Build.empty(foo, []) == %Foo{}
 
     assert Build.into(%Foo{}, [a: 1, b: 2, c: 3], fn {k, v} -> {k, v * 2} end) ==
@@ -37,11 +37,11 @@ defmodule BuildableTest do
 
     foo = %{__struct__: Foo, map: %{a: 2, b: 4, c: 6}}
 
-    assert Build.pop(foo) == Build.pop(foo, :start)
-    assert Build.pop(foo, :start) == {:ok, {:a, 2}, %{__struct__: Foo, map: %{b: 4, c: 6}}}
+    assert Build.extract(foo) == Build.extract(foo, :start)
+    assert Build.extract(foo, :start) == {:ok, {:a, 2}, %{__struct__: Foo, map: %{b: 4, c: 6}}}
 
-    assert Build.pop(foo, :end) == {:ok, {:c, 6}, %{__struct__: Foo, map: %{a: 2, b: 4}}}
+    assert Build.extract(foo, :end) == {:ok, {:c, 6}, %{__struct__: Foo, map: %{a: 2, b: 4}}}
 
-    assert Build.put(foo, {:d, 8}) == %{__struct__: Foo, map: %{a: 2, b: 4, c: 6, d: 8}}
+    assert Build.insert(foo, {:d, 8}) == %{__struct__: Foo, map: %{a: 2, b: 4, c: 6, d: 8}}
   end
 end

@@ -50,10 +50,10 @@ defimpl Buildable.Collectable, for: Any do
 
     fun = fn
       acc, {:cont, elem} ->
-        buildable_module.put(acc, elem)
+        buildable_module.insert(acc, elem)
 
       acc, :done ->
-        if buildable_module.default_position(:put) == :start do
+        if buildable_module.default_position(:insert) == :start do
           buildable_module.reverse(acc)
         else
           acc

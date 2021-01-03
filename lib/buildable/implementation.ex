@@ -15,8 +15,8 @@ defmodule Buildable.Implementation do
       # Behaviour callbacks
 
       @impl Buildable
-      def default_position(:put), do: :start
-      def default_position(:pop), do: :start
+      def default_position(:insert), do: :start
+      def default_position(:extract), do: :start
 
       @impl Buildable
       def new(enumerable, options \\ []) when is_list(options) do
@@ -38,10 +38,10 @@ defmodule Buildable.Implementation do
       defdelegate into(buildable), to: Buildable.Collectable
 
       @impl Buildable
-      def pop(buildable), do: pop(buildable, default_position(:pop))
+      def extract(buildable), do: extract(buildable, default_position(:extract))
 
       @impl Buildable
-      def put(buildable, term), do: put(buildable, term, default_position(:put))
+      def insert(buildable, term), do: insert(buildable, term, default_position(:insert))
 
       @impl Buildable
       def reverse(buildable) do
@@ -50,7 +50,7 @@ defmodule Buildable.Implementation do
         {:done, result} =
           Buildable.Reducible.reduce(buildable, {:cont, buildable_module.empty()}, fn element,
                                                                                       acc ->
-            {:cont, buildable_module.put(acc, element)}
+            {:cont, buildable_module.insert(acc, element)}
           end)
 
         result
@@ -58,8 +58,8 @@ defmodule Buildable.Implementation do
 
       defoverridable empty: 2,
                      into: 1,
-                     pop: 1,
-                     put: 2,
+                     extract: 1,
+                     insert: 2,
                      reverse: 1
     end
   end
@@ -74,25 +74,25 @@ defimpl Buildable, for: List do
   end
 
   @impl true
-  def pop([], position) when is_position(position) do
+  def extract([], position) when is_position(position) do
     :error
   end
 
-  def pop([head | rest], :start) do
+  def extract([head | rest], :start) do
     {:ok, head, rest}
   end
 
-  def pop(list, :end) do
+  def extract(list, :end) do
     [head | rest] = reverse(list)
     {:ok, head, reverse(rest)}
   end
 
   @impl true
-  def put(list, term, :start) do
+  def insert(list, term, :start) do
     [term | list]
   end
 
-  def put(list, term, :end) do
+  def insert(list, term, :end) do
     list ++ [term]
   end
 
@@ -111,24 +111,24 @@ defimpl Buildable, for: Map do
   end
 
   @impl true
-  def pop(map, position) when map == %{} and is_position(position) do
+  def extract(map, position) when map == %{} and is_position(position) do
     :error
   end
 
-  def pop(map, :start) do
+  def extract(map, :start) do
     [key | _] = Map.keys(map)
     {value, rest} = Map.pop!(map, key)
     {:ok, {key, value}, rest}
   end
 
-  def pop(map, :end) do
+  def extract(map, :end) do
     [key | _] = :lists.reverse(Map.keys(map))
     {value, rest} = Map.pop!(map, key)
     {:ok, {key, value}, rest}
   end
 
   @impl true
-  def put(map, {key, value}, position) when is_position(position) do
+  def insert(map, {key, value}, position) when is_position(position) do
     Map.put(map, key, value)
   end
 
@@ -147,11 +147,11 @@ defimpl Buildable, for: MapSet do
   end
 
   @impl true
-  def pop(map_set, :start) do
+  def extract(map_set, :start) do
     pop_by_index(map_set, 0)
   end
 
-  def pop(map_set, :end) do
+  def extract(map_set, :end) do
     pop_by_index(map_set, -1)
   end
 
@@ -166,7 +166,7 @@ defimpl Buildable, for: MapSet do
   end
 
   @impl true
-  def put(map_set, term, position) when is_position(position) do
+  def insert(map_set, term, position) when is_position(position) do
     MapSet.put(map_set, term)
   end
 
@@ -185,27 +185,27 @@ defimpl Buildable, for: Tuple do
   end
 
   @impl true
-  def pop({}, position) when is_position(position) do
+  def extract({}, position) when is_position(position) do
     :error
   end
 
-  def pop(tuple, :start) do
+  def extract(tuple, :start) do
     element = elem(tuple, 0)
     {:ok, element, Tuple.delete_at(tuple, 0)}
   end
 
-  def pop(tuple, :end) do
+  def extract(tuple, :end) do
     size = tuple_size(tuple)
     element = elem(tuple, size - 1)
     {:ok, element, Tuple.delete_at(tuple, size - 1)}
   end
 
   @impl true
-  def put(tuple, term, :start) do
+  def insert(tuple, term, :start) do
     Tuple.insert_at(tuple, 0, term)
   end
 
-  def put(tuple, term, :end) do
+  def insert(tuple, term, :end) do
     Tuple.append(tuple, term)
   end
 end
