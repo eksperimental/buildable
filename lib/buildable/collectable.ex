@@ -1,15 +1,20 @@
 defprotocol Buildable.Collectable do
   @moduledoc """
-  Documentation for `Buildable.Collectable`.
+  A protocol to traverse data structures.
+
+  Collectable protocol used by [`buildables`](`t:Buildable.t/0`).
+
+  The `Build.into/2` and `Build.into/3` functions use this protocol to insert an [enumerable](`t:Enumerable.t/0`) into a [`buildable`](`t:Buildable.t/0`).
   """
 
   @type t :: Buildable.t()
   @type command :: {:cont, term()} | :done | :halt
+  @type collector :: (term, command -> Buildable.t() | term)
 
   @fallback_to_any true
 
   @spec into(Buildable.t()) ::
-          {initial_acc :: term, collector :: (term, command -> Buildable.t() | term)}
+          {initial_acc :: term, collector}
   def into(buildable)
 end
 

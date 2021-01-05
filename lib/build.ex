@@ -14,6 +14,27 @@ defmodule Build do
   @spec empty(t(), options) :: t()
   defdelegate empty(enumerable, options), to: Buildable
 
+  @spec insert(t(), term) :: updated_buildable :: t()
+  defdelegate insert(buildable, term), to: Buildable
+
+  @spec insert(t(), term, position()) :: updated_buildable :: t()
+  defdelegate insert(buildable, term, position), to: Buildable
+
+  @spec extract(t()) ::
+          {:ok, element(), updated_buildable :: t()} | :error
+  defdelegate extract(buildable), to: Buildable
+
+  @spec extract(t(), position()) ::
+          {:ok, element(), updated_buildable :: t()} | :error
+  defdelegate extract(buildable, position), to: Buildable
+
+  @spec reverse(buildable) :: updated_buildable | buildable
+        when buildable: t(), updated_buildable: t()
+  defdelegate reverse(buildable), to: Buildable
+
+  #############################
+  # into/2
+
   @spec into(t(), Enum.t()) :: t()
   def into(buildable, enumerable)
 
@@ -55,6 +76,9 @@ defmodule Build do
     end)
   end
 
+  #############################
+  # into/3
+
   @spec into(t(), Enum.t(), transform_fun()) :: t()
   def into(buildable, enumerable, transform) when is_list(buildable) do
     buildable ++ Enum.map(enumerable, transform)
@@ -79,6 +103,9 @@ defmodule Build do
       acc -> fun.(acc, :done)
     end
   end
+
+  #############################
+  # reduce/2
 
   @spec reduce(t, (element, acc -> acc)) :: acc
   def reduce(buildable, fun)
@@ -109,6 +136,9 @@ defmodule Build do
     end
   end
 
+  #############################
+  # reduce/3
+
   @spec reduce(t, any, (element, acc -> acc)) :: acc
   def reduce(buildable, acc, fun) when is_list(buildable) do
     :lists.foldl(fun, acc, buildable)
@@ -132,24 +162,6 @@ defmodule Build do
     end)
     |> elem(1)
   end
-
-  @spec insert(t(), term) :: updated_buildable :: t()
-  defdelegate insert(buildable, term), to: Buildable
-
-  @spec insert(t(), term, position()) :: updated_buildable :: t()
-  defdelegate insert(buildable, term, position), to: Buildable
-
-  @spec extract(t()) ::
-          {:ok, element(), updated_buildable :: t()} | :error
-  defdelegate extract(buildable), to: Buildable
-
-  @spec extract(t(), position()) ::
-          {:ok, element(), updated_buildable :: t()} | :error
-  defdelegate extract(buildable, position), to: Buildable
-
-  @spec reverse(buildable) :: updated_buildable | buildable
-        when buildable: t(), updated_buildable: t()
-  defdelegate reverse(buildable), to: Buildable
 end
 
 defmodule Build.EmptyError do

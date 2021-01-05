@@ -1,6 +1,6 @@
 defprotocol Buildable.Reducible do
   @moduledoc """
-  Documentation for `Buildable.Reducible`.
+  [`Reducible`](`Buildable.Reducible`) protocol used by [`buildables`](`t:Buildable.t/0`).
   """
 
   @type t :: Buildable.t()
@@ -14,6 +14,11 @@ defprotocol Buildable.Reducible do
 
   @fallback_to_any true
 
+  @doc """
+  Reduces `buildable` into an element.
+
+  It behaves the same way as `Enumerable.reduce/3`.
+  """
   @spec reduce(Buildable.t(), acc(), reducer()) :: result()
   def reduce(buildable, acc, fun)
 end

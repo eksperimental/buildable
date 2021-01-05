@@ -30,18 +30,23 @@ defmodule Buildable.Implementation do
       # Protocol callbacks
 
       @impl Buildable
-      def empty(_buildable, options) do
-        empty(options)
+      def empty() do
+        empty([])
       end
 
       @impl Buildable
-      defdelegate into(buildable), to: Buildable.Collectable
+      def empty(_buildable, options) do
+        empty(options)
+      end
 
       @impl Buildable
       def extract(buildable), do: extract(buildable, default_position(:extract))
 
       @impl Buildable
       def insert(buildable, term), do: insert(buildable, term, default_position(:insert))
+
+      @impl Buildable
+      defdelegate into(buildable), to: Buildable.Collectable
 
       @impl Buildable
       def reverse(buildable) do
@@ -56,7 +61,8 @@ defmodule Buildable.Implementation do
         result
       end
 
-      defoverridable empty: 2,
+      defoverridable empty: 0,
+                     empty: 2,
                      into: 1,
                      extract: 1,
                      insert: 2,
