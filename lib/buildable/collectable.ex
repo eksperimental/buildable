@@ -58,10 +58,9 @@ defimpl Buildable.Collectable, for: Any do
         buildable_module.insert(acc, elem)
 
       acc, :done ->
-        if buildable_module.default_position(:insert) == :start do
-          buildable_module.reverse(acc)
-        else
-          acc
+        case buildable_module.default(:strategy) do
+          :fifo -> acc
+          :lifo -> buildable_module.reverse(acc)
         end
 
       _acc, :halt ->

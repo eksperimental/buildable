@@ -9,7 +9,9 @@ defprotocol Buildable do
   @type position :: :start | :end
   @type transform_fun :: (term() -> term())
 
-  @callback default_position(function_name :: :extract | :insert) :: position()
+  @callback default(:insert_position) :: position()
+  @callback default(:strategy) :: :fifo | :lifo
+  @callback default(:reversible?) :: boolean()
   @callback empty() :: t()
   @callback empty(options()) :: t()
   @callback new(Enum.t()) :: t()

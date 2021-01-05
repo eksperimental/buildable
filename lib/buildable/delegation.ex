@@ -8,7 +8,7 @@ defmodule Buildable.Delegation do
   defmacro __using__(_using_options) do
     quote do
       @impl Buildable
-      defdelegate default_position(function_name), to: Buildable.unquote(__CALLER__.module)
+      defdelegate default(option), to: Buildable.unquote(__CALLER__.module)
 
       @impl Buildable
       defdelegate empty(buildable, options), to: Buildable

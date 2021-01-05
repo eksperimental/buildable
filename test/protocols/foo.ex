@@ -14,6 +14,11 @@ defimpl Buildable, for: Foo do
   use Buildable.Implementation
 
   @impl true
+  def default(:strategy), do: :fifo
+  def default(:insert_position), do: :start
+  def default(:reversible?), do: false
+
+  @impl true
   def empty(_options \\ []) do
     %Foo{}
   end

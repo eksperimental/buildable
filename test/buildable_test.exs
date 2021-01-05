@@ -15,6 +15,8 @@ defmodule BuildableTest do
 
     foo = %{__struct__: Foo, map: %{a: 2, b: 4, c: 6}}
 
+    assert Foo.default(:strategy) == :fifo
+    assert Foo.default(:insert_position) == :start
     assert Foo.extract(foo) == Foo.extract(foo, :start)
     assert Foo.extract(foo, :start) == {:ok, {:a, 2}, %{__struct__: Foo, map: %{b: 4, c: 6}}}
 

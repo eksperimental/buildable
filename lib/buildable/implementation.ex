@@ -9,21 +9,22 @@ defmodule Buildable.Implementation do
   """
   defmacro __using__(_using_options) do
     quote do
-      import Buildable.Util, only: [is_position: 1]
+      import Buildable.Util, only: [is_position: 1, calculate_extract_position: 2]
 
       ##############################################
       # Behaviour callbacks
 
       @impl Buildable
-      def default_position(:insert), do: :start
-      def default_position(:extract), do: :start
+      def default(:insert_position), do: :start
+      def default(:strategy), do: :lifo
+      def default(:reversible?), do: true
 
       @impl Buildable
       def new(enumerable, options \\ []) when is_list(options) do
         Build.into(empty(options), enumerable)
       end
 
-      defoverridable default_position: 1,
+      defoverridable default: 1,
                      new: 1
 
       ##############################################
@@ -40,10 +41,18 @@ defmodule Buildable.Implementation do
       end
 
       @impl Buildable
-      def extract(buildable), do: extract(buildable, default_position(:extract))
+      def extract(buildable) do
+        extract_position =
+          calculate_extract_position(
+            default(:strategy),
+            default(:insert_position)
+          )
+
+        extract(buildable, extract_position)
+      end
 
       @impl Buildable
-      def insert(buildable, term), do: insert(buildable, term, default_position(:insert))
+      def insert(buildable, term), do: insert(buildable, term, default(:insert_position))
 
       @impl Buildable
       defdelegate into(buildable), to: Buildable.Collectable
@@ -52,13 +61,17 @@ defmodule Buildable.Implementation do
       def reverse(buildable) do
         buildable_module = Buildable.impl_for(buildable)
 
-        {:done, result} =
-          Buildable.Reducible.reduce(buildable, {:cont, buildable_module.empty()}, fn element,
-                                                                                      acc ->
-            {:cont, buildable_module.insert(acc, element)}
-          end)
+        if buildable_module.default(:reversible?) do
+          {:done, result} =
+            Buildable.Reducible.reduce(buildable, {:cont, buildable_module.empty()}, fn element,
+                                                                                        acc ->
+              {:cont, buildable_module.insert(acc, element)}
+            end)
 
-        result
+          result
+        else
+          buildable
+        end
       end
 
       defoverridable empty: 0,
@@ -154,14 +167,14 @@ defimpl Buildable, for: MapSet do
 
   @impl true
   def extract(map_set, :start) do
-    pop_by_index(map_set, 0)
+    extract_by_index(map_set, 0)
   end
 
   def extract(map_set, :end) do
-    pop_by_index(map_set, -1)
+    extract_by_index(map_set, -1)
   end
 
-  defp pop_by_index(map_set, index) do
+  defp extract_by_index(map_set, index) do
     case Enum.fetch(map_set, index) do
       {:ok, element} ->
         {:ok, element, MapSet.delete(map_set, element)}
