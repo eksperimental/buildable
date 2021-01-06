@@ -14,8 +14,7 @@ defimpl Buildable, for: Foo do
   default = [
     insert_position: :first,
     extract_position: :first,
-    reversible?: false,
-    strategy: nil
+    reversible?: false
   ]
 
   use Buildable.Implementation, default: default

@@ -11,8 +11,7 @@ defmodule Buildable.Implementation do
   @default [
     insert_position: :first,
     extract_position: nil,
-    reversible?: true,
-    strategy: nil
+    reversible?: true
   ]
 
   defmacro __using__(buildable_options) do
@@ -28,7 +27,7 @@ defmodule Buildable.Implementation do
           bind_quoted: [
             default: default
           ] do
-      import Buildable.Util, only: [is_position: 1, calculate_extract_position: 2]
+      import Buildable.Util, only: [is_position: 1]
 
       ##############################################
       # Behaviour callbacks
@@ -37,15 +36,11 @@ defmodule Buildable.Implementation do
       def default(:insert_position), do: unquote(Keyword.fetch!(default, :insert_position))
       def default(:extract_position), do: unquote(Keyword.fetch!(default, :extract_position))
       def default(:reversible?), do: unquote(Keyword.fetch!(default, :reversible?))
-      def default(:strategy), do: unquote(Keyword.fetch!(default, :strategy))
 
       @impl Buildable
       def new(enumerable, options \\ []) when is_list(options) do
         Build.into(unquote(__MODULE__).empty(options), enumerable)
       end
-
-      defoverridable default: 1,
-                     new: 1
 
       ##############################################
       # Protocol callbacks
@@ -57,14 +52,7 @@ defmodule Buildable.Implementation do
 
       @impl Buildable
       def extract(buildable) do
-        extract_position =
-          unquote(__MODULE__).default(:extract_position) ||
-            calculate_extract_position(
-              default(:strategy),
-              default(:insert_position)
-            )
-
-        extract(buildable, extract_position)
+        extract(buildable, default(:extract_position))
       end
 
       @impl Buildable
@@ -96,11 +84,13 @@ defmodule Buildable.Implementation do
       end
 
       defoverridable empty: 0,
-                     into: 1,
                      extract: 1,
                      insert: 2,
+                     into: 1,
+                     new: 1,
                      reverse: 1,
-                     to_empty: 2
+                     to_empty: 2,
+                     default: 1
     end
   end
 end
@@ -109,8 +99,7 @@ defimpl Buildable, for: List do
   default = [
     insert_position: :first,
     extract_position: :first,
-    reversible?: true,
-    strategy: :stack
+    reversible?: true
   ]
 
   use Buildable.Implementation, default: default
@@ -171,8 +160,7 @@ defimpl Buildable, for: Map do
   default = [
     insert_position: :first,
     extract_position: :first,
-    reversible?: false,
-    strategy: nil
+    reversible?: false
   ]
 
   use Buildable.Implementation, default: default
@@ -234,8 +222,7 @@ defimpl Buildable, for: MapSet do
   default = [
     insert_position: :first,
     extract_position: :first,
-    reversible?: false,
-    strategy: nil
+    reversible?: false
   ]
 
   use Buildable.Implementation, default: default
@@ -298,6 +285,12 @@ defimpl Buildable, for: MapSet do
 end
 
 defimpl Buildable, for: Tuple do
+  default = [
+    insert_position: :first,
+    extract_position: :first,
+    reversible?: true
+  ]
+
   use Buildable.Implementation
 
   @impl true
