@@ -2,26 +2,46 @@ defmodule Buildable.Implementation do
   @moduledoc """
   Convenience module providing the `__using__/1` macro.
 
-  It defines the default implementations for `c:Buildable.empty/2`,
-  `c:Buildable.new/1`, `c:Buildable.new/2`.
+  It defines the default implementations for
+  `c:Buildable.new/1`, `c:Buildable.new/2`, `c:Buildable.to_empty/2`.
 
   To use it call `use Buildable.Implementation`.
   """
-  defmacro __using__(_using_options) do
-    quote do
+
+  @default [
+    insert_position: :first,
+    extract_position: nil,
+    reversible?: true,
+    strategy: nil
+  ]
+
+  defmacro __using__(buildable_options) do
+    buildable_options = Macro.expand(buildable_options, __CALLER__)
+
+    default =
+      case Keyword.get(buildable_options, :default, []) do
+        [] -> @default
+        default -> default
+      end
+
+    quote location: :keep,
+          bind_quoted: [
+            default: default
+          ] do
       import Buildable.Util, only: [is_position: 1, calculate_extract_position: 2]
 
       ##############################################
       # Behaviour callbacks
 
       @impl Buildable
-      def default(:insert_position), do: :start
-      def default(:strategy), do: :lifo
-      def default(:reversible?), do: true
+      def default(:insert_position), do: unquote(Keyword.fetch!(default, :insert_position))
+      def default(:extract_position), do: unquote(Keyword.fetch!(default, :extract_position))
+      def default(:reversible?), do: unquote(Keyword.fetch!(default, :reversible?))
+      def default(:strategy), do: unquote(Keyword.fetch!(default, :strategy))
 
       @impl Buildable
       def new(enumerable, options \\ []) when is_list(options) do
-        Build.into(empty(options), enumerable)
+        Build.into(unquote(__MODULE__).empty(options), enumerable)
       end
 
       defoverridable default: 1,
@@ -32,21 +52,17 @@ defmodule Buildable.Implementation do
 
       @impl Buildable
       def empty() do
-        empty([])
-      end
-
-      @impl Buildable
-      def empty(_buildable, options) do
-        empty(options)
+        unquote(__MODULE__).empty([])
       end
 
       @impl Buildable
       def extract(buildable) do
         extract_position =
-          calculate_extract_position(
-            default(:strategy),
-            default(:insert_position)
-          )
+          unquote(__MODULE__).default(:extract_position) ||
+            calculate_extract_position(
+              default(:strategy),
+              default(:insert_position)
+            )
 
         extract(buildable, extract_position)
       end
@@ -74,18 +90,30 @@ defmodule Buildable.Implementation do
         end
       end
 
+      @impl Buildable
+      def to_empty(buildable, options) do
+        Buildable.impl_for(buildable).empty(options)
+      end
+
       defoverridable empty: 0,
-                     empty: 2,
                      into: 1,
                      extract: 1,
                      insert: 2,
-                     reverse: 1
+                     reverse: 1,
+                     to_empty: 2
     end
   end
 end
 
 defimpl Buildable, for: List do
-  use Buildable.Implementation
+  default = [
+    insert_position: :first,
+    extract_position: :first,
+    reversible?: true,
+    strategy: :stack
+  ]
+
+  use Buildable.Implementation, default: default
 
   @impl true
   def empty(_options \\ []) do
@@ -97,22 +125,40 @@ defimpl Buildable, for: List do
     :error
   end
 
-  def extract([head | rest], :start) do
+  def extract([head | rest], :first) do
     {:ok, head, rest}
   end
 
-  def extract(list, :end) do
+  def extract(list, :last) do
     [head | rest] = reverse(list)
     {:ok, head, reverse(rest)}
   end
 
   @impl true
-  def insert(list, term, :start) do
+  def insert(list, term, :first) do
     [term | list]
   end
 
-  def insert(list, term, :end) do
+  def insert(list, term, :last) do
     list ++ [term]
+  end
+
+  @impl true
+  def peek(list) do
+    peek(list, :first)
+  end
+
+  @impl true
+  def peek([head | _rest], :first) do
+    {:ok, head}
+  end
+
+  def peek([_ | _] = list, :last) do
+    {:ok, List.last(list)}
+  end
+
+  def peek([], position) when is_position(position) do
+    :error
   end
 
   @impl true
@@ -122,7 +168,14 @@ defimpl Buildable, for: List do
 end
 
 defimpl Buildable, for: Map do
-  use Buildable.Implementation
+  default = [
+    insert_position: :first,
+    extract_position: :first,
+    reversible?: false,
+    strategy: nil
+  ]
+
+  use Buildable.Implementation, default: default
 
   @impl true
   def empty(_options \\ []) do
@@ -134,13 +187,13 @@ defimpl Buildable, for: Map do
     :error
   end
 
-  def extract(map, :start) do
+  def extract(map, :first) do
     [key | _] = Map.keys(map)
     {value, rest} = Map.pop!(map, key)
     {:ok, {key, value}, rest}
   end
 
-  def extract(map, :end) do
+  def extract(map, :last) do
     [key | _] = :lists.reverse(Map.keys(map))
     {value, rest} = Map.pop!(map, key)
     {:ok, {key, value}, rest}
@@ -152,13 +205,40 @@ defimpl Buildable, for: Map do
   end
 
   @impl true
+  def peek(map) do
+    peek(map, :first)
+  end
+
+  @impl true
+  def peek(map, position) when map == %{} and is_position(position) do
+    :error
+  end
+
+  def peek(map, :first) do
+    [key | _] = Map.keys(map)
+    {:ok, Map.get(map, key)}
+  end
+
+  def peek(map, :last) do
+    [key | _] = :lists.reverse(Map.keys(map))
+    {:ok, Map.get(map, key)}
+  end
+
+  @impl true
   def reverse(map) do
     map
   end
 end
 
 defimpl Buildable, for: MapSet do
-  use Buildable.Implementation
+  default = [
+    insert_position: :first,
+    extract_position: :first,
+    reversible?: false,
+    strategy: nil
+  ]
+
+  use Buildable.Implementation, default: default
 
   @impl true
   def empty(_options \\ []) do
@@ -166,11 +246,11 @@ defimpl Buildable, for: MapSet do
   end
 
   @impl true
-  def extract(map_set, :start) do
+  def extract(map_set, :first) do
     extract_by_index(map_set, 0)
   end
 
-  def extract(map_set, :end) do
+  def extract(map_set, :last) do
     extract_by_index(map_set, -1)
   end
 
@@ -187,6 +267,28 @@ defimpl Buildable, for: MapSet do
   @impl true
   def insert(map_set, term, position) when is_position(position) do
     MapSet.put(map_set, term)
+  end
+
+  @impl true
+  def peek(map_set) do
+    peek(map_set, :first)
+  end
+
+  @impl true
+  def peek(map_set, position) when is_position(position) do
+    index =
+      case position do
+        :first -> 0
+        :last -> -1
+      end
+
+    case Enum.fetch(map_set, index) do
+      {:ok, element} ->
+        {:ok, element}
+
+      :error ->
+        :error
+    end
   end
 
   @impl true
@@ -208,23 +310,23 @@ defimpl Buildable, for: Tuple do
     :error
   end
 
-  def extract(tuple, :start) do
+  def extract(tuple, :first) do
     element = elem(tuple, 0)
     {:ok, element, Tuple.delete_at(tuple, 0)}
   end
 
-  def extract(tuple, :end) do
+  def extract(tuple, :last) do
     size = tuple_size(tuple)
     element = elem(tuple, size - 1)
     {:ok, element, Tuple.delete_at(tuple, size - 1)}
   end
 
   @impl true
-  def insert(tuple, term, :start) do
+  def insert(tuple, term, :first) do
     Tuple.insert_at(tuple, 0, term)
   end
 
-  def insert(tuple, term, :end) do
+  def insert(tuple, term, :last) do
     Tuple.append(tuple, term)
   end
 end

@@ -15,12 +15,12 @@ defmodule BuildableTest do
 
     foo = %{__struct__: Foo, map: %{a: 2, b: 4, c: 6}}
 
-    assert Foo.default(:strategy) == :fifo
-    assert Foo.default(:insert_position) == :start
-    assert Foo.extract(foo) == Foo.extract(foo, :start)
-    assert Foo.extract(foo, :start) == {:ok, {:a, 2}, %{__struct__: Foo, map: %{b: 4, c: 6}}}
+    assert Foo.default(:strategy) == nil
+    assert Foo.default(:insert_position) == :first
+    assert Foo.extract(foo) == Foo.extract(foo, :first)
+    assert Foo.extract(foo, :first) == {:ok, {:a, 2}, %{__struct__: Foo, map: %{b: 4, c: 6}}}
 
-    assert Foo.extract(foo, :end) == {:ok, {:c, 6}, %{__struct__: Foo, map: %{a: 2, b: 4}}}
+    assert Foo.extract(foo, :last) == {:ok, {:c, 6}, %{__struct__: Foo, map: %{a: 2, b: 4}}}
 
     assert Foo.insert(foo, {:d, 8}) == %{__struct__: Foo, map: %{a: 2, b: 4, c: 6, d: 8}}
   end
@@ -29,7 +29,7 @@ defmodule BuildableTest do
     foo = %{__struct__: Foo, map: %{a: 2, b: 4, c: 6}}
 
     assert Build.insert(foo, {:d, 8}) == %{__struct__: Foo, map: %{a: 2, b: 4, c: 6, d: 8}}
-    assert Build.empty(foo, []) == %Foo{}
+    assert Build.to_empty(foo, []) == %Foo{}
 
     assert Build.into(%Foo{}, [a: 1, b: 2, c: 3], fn {k, v} -> {k, v * 2} end) ==
              %{__struct__: Foo, map: %{a: 2, b: 4, c: 6}}
@@ -39,10 +39,10 @@ defmodule BuildableTest do
 
     foo = %{__struct__: Foo, map: %{a: 2, b: 4, c: 6}}
 
-    assert Build.extract(foo) == Build.extract(foo, :start)
-    assert Build.extract(foo, :start) == {:ok, {:a, 2}, %{__struct__: Foo, map: %{b: 4, c: 6}}}
+    assert Build.extract(foo) == Build.extract(foo, :first)
+    assert Build.extract(foo, :first) == {:ok, {:a, 2}, %{__struct__: Foo, map: %{b: 4, c: 6}}}
 
-    assert Build.extract(foo, :end) == {:ok, {:c, 6}, %{__struct__: Foo, map: %{a: 2, b: 4}}}
+    assert Build.extract(foo, :last) == {:ok, {:c, 6}, %{__struct__: Foo, map: %{a: 2, b: 4}}}
 
     assert Build.insert(foo, {:d, 8}) == %{__struct__: Foo, map: %{a: 2, b: 4, c: 6, d: 8}}
   end

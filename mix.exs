@@ -11,7 +11,8 @@ defmodule Buildable.MixProject do
       deps: deps(),
       elixirc_paths: elixirc_paths(Mix.env()),
       preferred_cli_env: ["test.all": :test],
-      test_coverage: [tool: Coverex.Task]
+      test_coverage: [tool: Coverex.Task],
+      dialyzer: [ignore_warnings: "dialyzer.ignore-warnings"]
     ]
   end
 

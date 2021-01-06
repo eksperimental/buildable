@@ -11,9 +11,6 @@ defmodule Buildable.Delegation do
       defdelegate default(option), to: Buildable.unquote(__CALLER__.module)
 
       @impl Buildable
-      defdelegate empty(buildable, options), to: Buildable
-
-      @impl Buildable
       defdelegate empty(options \\ []), to: Buildable.unquote(__CALLER__.module)
 
       @impl Buildable
@@ -36,6 +33,9 @@ defmodule Buildable.Delegation do
 
       @impl Buildable
       defdelegate reverse(buildable), to: Buildable
+
+      @impl Buildable
+      defdelegate to_empty(buildable, options), to: Buildable
     end
   end
 end

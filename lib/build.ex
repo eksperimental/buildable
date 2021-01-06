@@ -11,9 +11,6 @@ defmodule Build do
 
   @compile {:inline, reduce: 3, reduce_buildable: 3}
 
-  @spec empty(t(), options) :: t()
-  defdelegate empty(enumerable, options), to: Buildable
-
   @spec insert(t(), term) :: updated_buildable :: t()
   defdelegate insert(buildable, term), to: Buildable
 
@@ -31,6 +28,9 @@ defmodule Build do
   @spec reverse(buildable) :: updated_buildable | buildable
         when buildable: t(), updated_buildable: t()
   defdelegate reverse(buildable), to: Buildable
+
+  @spec to_empty(t(), options) :: t()
+  defdelegate to_empty(enumerable, options), to: Buildable
 
   #############################
   # into/2

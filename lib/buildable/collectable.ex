@@ -58,15 +58,27 @@ defimpl Buildable.Collectable, for: Any do
         buildable_module.insert(acc, elem)
 
       acc, :done ->
-        case buildable_module.default(:strategy) do
-          :fifo -> acc
-          :lifo -> buildable_module.reverse(acc)
-        end
+        done(acc, buildable_module)
 
       _acc, :halt ->
         :ok
     end
 
     {buildable, fun}
+  end
+
+  @compile {:inline, done: 2}
+  defp done(acc, buildable_module) do
+    case buildable_module.default(:strategy) do
+      :queue ->
+        acc
+
+      strategy when strategy in [:stack, nil] ->
+        if buildable_module.default(:reversible?) do
+          buildable_module.reverse(acc)
+        else
+          acc
+        end
+    end
   end
 end

@@ -11,38 +11,39 @@ defmodule Foo do
 end
 
 defimpl Buildable, for: Foo do
-  use Buildable.Implementation
+  default = [
+    insert_position: :first,
+    extract_position: :first,
+    reversible?: false,
+    strategy: nil
+  ]
 
-  @impl true
-  def default(:strategy), do: :fifo
-  def default(:insert_position), do: :start
-  def default(:reversible?), do: false
-
-  @impl true
-  def empty(_options \\ []) do
-    %Foo{}
-  end
+  use Buildable.Implementation, default: default
 
   # defguard size(struct)
   #          when is_struct(struct, Foo) and is_map_key(struct, :map) and
   #                 map_size(:erlang.map_get(:map, struct))
   defguard size(struct) when map_size(:erlang.map_get(:map, struct))
 
-  # Protocol callbacks
-  @impl true
-  defdelegate into(buildable), to: Buildable.Collectable.Any
+  ##############################################
+  # Behaviour callbacks
 
+  @impl true
+  def empty(_options), do: %Foo{}
+
+  ##############################################
+  # Protocol callbacks
   @impl true
   def extract(struct, position)
 
-  def extract(%Foo{map: map} = struct, :start)
+  def extract(%Foo{map: map} = struct, :first)
       when size(struct) > 0 do
     [key | _] = Map.keys(map)
     {value, rest} = Map.pop!(map, key)
     {:ok, {key, value}, %{struct | map: rest}}
   end
 
-  def extract(%Foo{map: map} = struct, :end) when size(struct) > 0 do
+  def extract(%Foo{map: map} = struct, :last) when size(struct) > 0 do
     [key | _] = :lists.reverse(Map.keys(map))
     {value, rest} = Map.pop!(map, key)
     {:ok, {key, value}, %{struct | map: rest}}
