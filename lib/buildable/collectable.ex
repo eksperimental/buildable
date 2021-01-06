@@ -69,25 +69,25 @@ defimpl Buildable.Collectable, for: Any do
 
   @compile {:inline, done: 2}
   defp done(acc, buildable_module) do
-    # TODO: I need to work this out and get rid of strategy/2
-    case strategy(
-           buildable_module.default(:insert_position),
-           buildable_module.default(:extract_position)
-         ) do
-      :queue ->
-        acc
+    # TO-DO: test this
+    if buildable_module.default(:reversible?) == false do
+      acc
+    else
+      case buildable_module.default(:extract_position) do
+        :first ->
+          if buildable_module.default(:insert_position) == :last do
+            acc
+          else
+            buildable_module.reverse(acc)
+          end
 
-      :stack ->
-        if buildable_module.default(:reversible?) do
-          buildable_module.reverse(acc)
-        else
-          acc
-        end
+        :last ->
+          if buildable_module.default(:insert_position) == :last do
+            acc
+          else
+            buildable_module.reverse(acc)
+          end
+      end
     end
   end
-
-  defp strategy(:first, :first), do: :queue
-  defp strategy(:last, :last), do: :queue
-  defp strategy(:first, :last), do: :stack
-  defp strategy(:last, :first), do: :stack
 end

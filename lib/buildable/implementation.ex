@@ -291,7 +291,7 @@ defimpl Buildable, for: Tuple do
     reversible?: true
   ]
 
-  use Buildable.Implementation
+  use Buildable.Implementation, default: default
 
   @impl true
   def empty(_options \\ []) do
