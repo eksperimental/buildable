@@ -1,1 +1,1 @@
-Guard test _@2::'first' | 'stack' | 'true' =:= 'nil' can never succeed
+Guard test _@2::'first' | 'true' =:= 'nil' can never succeed

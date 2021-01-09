@@ -30,7 +30,7 @@ defmodule Build do
   defdelegate reverse(buildable), to: Buildable
 
   @spec to_empty(t(), options) :: t()
-  defdelegate to_empty(enumerable, options), to: Buildable
+  defdelegate to_empty(enumerable, options \\ []), to: Buildable
 
   #############################
   # into/2

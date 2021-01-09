@@ -55,7 +55,8 @@ defprotocol Buildable do
   def peek(buildable, position)
 
   @spec to_empty(t(), options) :: t()
-  def to_empty(buildable, options)
+  def to_empty(buildable, options \\ [])
 
+  # FIX THIS, REPORT TO ELIXIR: , to_empty: 1
   @optional_callbacks empty: 0, new: 1, extract: 1, insert: 2, peek: 1, peek: 2
 end

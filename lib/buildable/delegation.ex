@@ -35,7 +35,7 @@ defmodule Buildable.Delegation do
       defdelegate reverse(buildable), to: Buildable
 
       @impl Buildable
-      defdelegate to_empty(buildable, options), to: Buildable
+      defdelegate to_empty(buildable, options \\ []), to: Buildable
     end
   end
 end

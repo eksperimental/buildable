@@ -56,20 +56,19 @@ defmodule Buildable.Implementation do
       end
 
       @impl Buildable
-      def insert(buildable, term), do: insert(buildable, term, default(:insert_position))
+      def insert(buildable, term) do
+        insert(buildable, term, default(:insert_position))
+      end
 
       @impl Buildable
       defdelegate into(buildable), to: Buildable.Collectable
 
       @impl Buildable
       def reverse(buildable) do
-        buildable_module = Buildable.impl_for(buildable)
-
-        if buildable_module.default(:reversible?) do
+        if default(:reversible?) do
           {:done, result} =
-            Buildable.Reducible.reduce(buildable, {:cont, buildable_module.empty()}, fn element,
-                                                                                        acc ->
-              {:cont, buildable_module.insert(acc, element)}
+            Buildable.Reducible.reduce(buildable, {:cont, empty()}, fn element, acc ->
+              {:cont, insert(acc, element)}
             end)
 
           result
@@ -79,7 +78,7 @@ defmodule Buildable.Implementation do
       end
 
       @impl Buildable
-      def to_empty(buildable, options) do
+      def to_empty(buildable, options \\ []) do
         Buildable.impl_for(buildable).empty(options)
       end
 
@@ -89,6 +88,7 @@ defmodule Buildable.Implementation do
                      into: 1,
                      new: 1,
                      reverse: 1,
+                     to_empty: 1,
                      to_empty: 2,
                      default: 1
     end
