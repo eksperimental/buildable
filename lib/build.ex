@@ -35,66 +35,112 @@ defmodule Build do
   #############################
   # into/2
 
-  @spec into(t(), Enum.t()) :: t()
-  def into(buildable, enumerable)
+  @spec into(t(), t() | Enum.t()) :: t()
+  def into(buildable, collection) do
+    cond do
+      impl?(collection, Buildable) ->
+        do_into(buildable, collection, {nil, Buildable.Collectable})
 
-  def into([], enumerable) do
-    Enum.to_list(enumerable)
+      impl?(collection, Enumerable) ->
+        do_into(buildable, collection, {Enum, Collectable})
+    end
   end
 
-  def into(buildable, %_{} = enumerable) do
-    into_protocol(buildable, enumerable)
+  defp do_into([], collection, {module, _protocol}) do
+    if module do
+      module.to_list(collection)
+    else
+      to_list(collection)
+    end
   end
 
-  def into(%_{} = buildable, enumerable) do
-    into_protocol(buildable, enumerable)
+  defp do_into(enumerable, collectable, {module, protocol})
+       when is_struct(enumerable) or is_struct(collectable) do
+    into_protocol(enumerable, collectable, {module, protocol})
   end
 
-  def into(%{} = buildable, %{} = enumerable) do
-    Map.merge(enumerable, buildable)
+  defp do_into(%{} = buildable, %{} = collection, {_module, _protocol}) do
+    Map.merge(buildable, collection)
   end
 
-  def into(%{} = buildable, enumerable) when is_list(enumerable) do
-    Map.merge(buildable, :maps.from_list(enumerable))
+  defp do_into(%{} = buildable, collection, {_module, _protocol})
+       when is_list(collection) do
+    Map.merge(buildable, :maps.from_list(collection))
   end
 
-  def into(%{} = buildable, enumerable) do
-    reduce(buildable, enumerable, fn {key, val}, acc ->
+  defp do_into(%{} = buildable, collection, {_module, _protocol}) do
+    reduce(buildable, collection, fn {key, val}, acc ->
       Map.put(acc, key, val)
     end)
   end
 
-  def into(buildable, enumerable) do
-    into_protocol(buildable, enumerable)
+  defp do_into(buildable, collection, {module, protocol}) do
+    into_protocol(buildable, collection, {module, protocol})
   end
 
-  defp into_protocol(buildable, enumerable) do
+  defp into_protocol(buildable, collection, {module, protocol}) do
     {initial, fun} = Buildable.into(buildable)
 
-    into(initial, enumerable, fun, fn entry, acc ->
-      fun.(acc, {:cont, entry})
-    end)
+    do_into(
+      initial,
+      collection,
+      fun,
+      fn entry, acc ->
+        fun.(acc, {:cont, entry})
+      end,
+      {module, protocol}
+    )
   end
 
   #############################
   # into/3
 
-  @spec into(t(), Enum.t(), transform_fun()) :: t()
-  def into(buildable, enumerable, transform) when is_list(buildable) do
-    buildable ++ Enum.map(enumerable, transform)
+  @spec into(t(), t() | Enum.t(), transform_fun()) :: t()
+  def into(buildable, collection, transform) do
+    cond do
+      impl?(collection, Buildable) ->
+        into(buildable, collection, transform, {nil, Buildable})
+
+      impl?(collection, Enumerable) ->
+        into(buildable, collection, transform, {Enum, Enumerable})
+    end
   end
 
-  def into(buildable, enumerable, transform) do
-    {initial, fun} = Buildable.into(buildable)
-
-    into(initial, enumerable, fun, fn entry, acc ->
-      fun.(acc, {:cont, transform.(entry)})
-    end)
+  defp into(
+         buildable,
+         buildable_collection,
+         transform,
+         {module, _protocol}
+       )
+       when is_list(buildable) do
+    if module do
+      buildable ++ module.map(buildable_collection, transform)
+    else
+      buildable ++ map(buildable_collection, transform)
+    end
   end
 
-  defp into(initial, enumerable, fun, callback) do
+  defp into(buildable, collection, transform, {module, protocol}) do
+    {initial, fun} = Buildable.Collectable.into(buildable)
+
+    do_into(
+      initial,
+      collection,
+      fun,
+      fn entry, acc ->
+        fun.(acc, {:cont, transform.(entry)})
+      end,
+      {module, protocol}
+    )
+  end
+
+  defp do_into(initial, collection, fun, callback, {module, _protocol}) do
     try do
-      Enum.reduce(enumerable, initial, callback)
+      if module do
+        module.reduce(collection, initial, callback)
+      else
+        reduce(collection, initial, callback)
+      end
     catch
       kind, reason ->
         fun.(initial, :halt)
@@ -103,6 +149,49 @@ defmodule Build do
       acc -> fun.(acc, :done)
     end
   end
+
+  defp impl?(term, protocol) when is_atom(protocol) do
+    if Code.ensure_loaded?(protocol) and protocol.impl_for(term) != nil do
+      true
+    else
+      false
+    end
+  end
+
+  @doc """
+  Returns a list where each element is the result of invoking
+  `fun` on each corresponding element of `buildable`.
+
+  For maps, the function expects a key-value tuple.
+
+  ## Examples
+
+      iex> Build.map([1, 2, 3], fn x -> x * 2 end)
+      [2, 4, 6]
+
+      iex> Build.map([a: 1, b: 2], fn {k, v} -> {k, -v} end)
+      [a: -1, b: -2]
+
+  """
+  @spec map(t, (element -> any)) :: list
+  def map(buildable, fun)
+
+  def map(buildable, fun) when is_list(buildable) do
+    :lists.map(fun, buildable)
+  end
+
+  def map(buildable, fun) do
+    reducer = fn entry, acc ->
+      [fun.(entry) | acc]
+    end
+
+    reduce(buildable, [], reducer) |> reverse()
+  end
+
+  # def map(enumerable, fun) do
+  #   reducer = fn x, acc -> {:cont, [fun.(x) | acc]} end
+  #   Enumerable.reduce(enumerable, {:cont, []}, reducer) |> elem(1) |> :lists.reverse()
+  # end
 
   #############################
   # reduce/2
@@ -161,6 +250,24 @@ defmodule Build do
       {:cont, fun.(element, acc)}
     end)
     |> elem(1)
+  end
+
+  @spec to_list(t) :: [element]
+  def to_list(buildable) when is_list(buildable), do: buildable
+  def to_list(%_{} = buildable), do: do_to_list(buildable)
+  def to_list(%{} = buildable), do: Map.to_list(buildable)
+  def to_list(buildable), do: do_to_list(buildable)
+
+  def do_to_list(buildable) do
+    buildable_module = Buildable.impl_for(buildable)
+    result = into([], buildable, &Function.identity/1)
+
+    if buildable_module.default(:reversible?) and
+         buildable_module.default(:extract_position) == buildable_module.default(:into_position) do
+      :lists.reverse(result)
+    else
+      result
+    end
   end
 end
 

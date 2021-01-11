@@ -14,6 +14,7 @@ defimpl Buildable, for: Foo do
   default = [
     insert_position: :first,
     extract_position: :first,
+    into_position: :last,
     reversible?: false
   ]
 

@@ -9,9 +9,10 @@ defmodule Buildable.Implementation do
   """
 
   @default [
-    insert_position: :first,
+    insert_position: nil,
     extract_position: nil,
-    reversible?: true
+    into_position: nil,
+    reversible?: nil
   ]
 
   defmacro __using__(buildable_options) do
@@ -33,8 +34,9 @@ defmodule Buildable.Implementation do
       # Behaviour callbacks
 
       @impl Buildable
-      def default(:insert_position), do: unquote(Keyword.fetch!(default, :insert_position))
       def default(:extract_position), do: unquote(Keyword.fetch!(default, :extract_position))
+      def default(:insert_position), do: unquote(Keyword.fetch!(default, :insert_position))
+      def default(:into_position), do: unquote(Keyword.fetch!(default, :into_position))
       def default(:reversible?), do: unquote(Keyword.fetch!(default, :reversible?))
 
       @impl Buildable
@@ -99,6 +101,7 @@ defimpl Buildable, for: List do
   default = [
     insert_position: :first,
     extract_position: :first,
+    into_position: :last,
     reversible?: true
   ]
 
@@ -160,6 +163,7 @@ defimpl Buildable, for: Map do
   default = [
     insert_position: :first,
     extract_position: :first,
+    into_position: :last,
     reversible?: false
   ]
 
@@ -222,6 +226,7 @@ defimpl Buildable, for: MapSet do
   default = [
     insert_position: :first,
     extract_position: :first,
+    into_position: :last,
     reversible?: false
   ]
 
@@ -288,6 +293,7 @@ defimpl Buildable, for: Tuple do
   default = [
     insert_position: :first,
     extract_position: :first,
+    into_position: :last,
     reversible?: true
   ]
 

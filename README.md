@@ -11,8 +11,8 @@ The very basic version of any term type can be implemented with only three funct
 
 There are other two protocols that get automatically implemeneted, based on the callback implementations for `Buildable`,
 which are:
-- `Buildable.Collectable`: it collects elements into a buidable term. It is analog to Elixir core's `Collectable`, with a minor improvement.
-- `Buidable.Reducible`: it reduces the buildable into an element. It is analog to Elixir core's `Enumerable`. 
+- `Buildable.Collectable`: it collects elements into a buildable term. It is analog to Elixir core's `Collectable`, with a minor improvement.
+- `Buildable.Reducible`: it reduces the buildable into an element. It is analog to Elixir core's `Enumerable`.
 
 ## Installation
 

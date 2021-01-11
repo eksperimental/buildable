@@ -18,8 +18,9 @@ defprotocol Buildable do
   - `extract_position`: where to extract the element from the buildable. Accepted values are `:first`, `:last`, and `nil`.
     `nil` means that the buildable has not concept of inserting elements in a particular order.
   """
-  @callback default(:insert_position) :: position()
   @callback default(:extract_position) :: position()
+  @callback default(:insert_position) :: position()
+  @callback default(:into_position) :: position()
   @callback default(:reversible?) :: boolean()
 
   @callback empty() :: t()

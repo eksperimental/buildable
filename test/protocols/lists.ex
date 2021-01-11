@@ -1,19 +1,28 @@
 positions = %{
   FIFO => [
+    extract: :last,
     insert: :first,
-    extract: :last
+    into: :last
   ],
   FILO => [
+    extract: :first,
     insert: :first,
-    extract: :first
+    into: :last
   ],
   LILO => [
+    extract: :first,
     insert: :last,
-    extract: :first
+    into: :last
   ],
   LIFO => [
+    extract: :last,
     insert: :last,
-    extract: :last
+    into: :last
+  ],
+  ALL_FIRST => [
+    extract: :first,
+    insert: :first,
+    into: :first
   ]
 }
 
@@ -79,6 +88,7 @@ for {module, position} <- positions do
     use Buildable.Implementation,
       default: [
         insert_position: position[:insert],
+        into_position: position[:into],
         extract_position: position[:extract],
         reversible?: true
       ]

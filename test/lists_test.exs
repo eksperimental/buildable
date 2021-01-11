@@ -1,22 +1,68 @@
 defmodule ListsTest do
   use ExUnit.Case
 
-  test "FIFO" do
-    struct = %{__struct__: FIFO, list: [2, 4, 6]}
+  describe "FIFO" do
+    setup _ do
+      %{
+        struct: %{__struct__: FIFO, list: [2, 4, 6]}
+      }
+    end
 
-    assert FIFO.insert(struct, 0) == %{__struct__: FIFO, list: [0, 2, 4, 6]}
-    assert FIFO.extract(struct) == {:ok, 6, %{__struct__: FIFO, list: [2, 4]}}
-    assert FIFO.reverse(struct) == %{__struct__: FIFO, list: [6, 4, 2]}
-    assert FIFO.to_empty(struct) == %FIFO{}
+    test "basic functions", %{struct: struct} do
+      assert FIFO.insert(struct, 0) == %{__struct__: FIFO, list: [0, 2, 4, 6]}
+      assert FIFO.extract(struct) == {:ok, 6, %{__struct__: FIFO, list: [2, 4]}}
+      assert FIFO.reverse(struct) == %{__struct__: FIFO, list: [6, 4, 2]}
+      assert FIFO.to_empty(struct) == %FIFO{}
+    end
 
-    assert Build.into(%FIFO{}, [1, 2, 3], fn v -> v * 2 end) ==
-             %{__struct__: FIFO, list: [2, 4, 6]}
+    test "Build.into/2", %{struct: struct} do
+      assert Build.into(%FIFO{}, 1..3) ==
+               %{__struct__: FIFO, list: [1, 2, 3]}
 
-    assert Build.into(%FIFO{}, [a: 1, b: 2, c: 3], fn {k, v} -> {k, v * 2} end) ==
-             %{__struct__: FIFO, list: [a: 2, b: 4, c: 6]}
+      assert Build.into(%FIFO{}, struct) ==
+               %{__struct__: FIFO, list: [6, 4, 2]}
 
-    assert Build.into(%FIFO{}, 1..3, fn v -> v * 2 end) ==
-             %{__struct__: FIFO, list: [2, 4, 6]}
+      assert Build.into(struct, %{__struct__: FIFO, list: [1, 2, 3]}) ==
+               %{__struct__: FIFO, list: [2, 4, 6, 3, 2, 1]}
+
+      assert Build.into(struct, %{__struct__: FILO, list: [1, 2, 3]}) ==
+               %{__struct__: FIFO, list: [2, 4, 6, 1, 2, 3]}
+
+      assert Build.into(struct, %{__struct__: ALL_FIRST, list: [1, 2, 3]}) ==
+               %{__struct__: FIFO, list: [2, 4, 6, 1, 2, 3]}
+
+      assert Build.into(%{__struct__: ALL_FIRST, list: [1, 2, 3]}, struct) ==
+               %{__struct__: ALL_FIRST, list: [2, 4, 6, 1, 2, 3]}
+    end
+
+    test "Build.into/3", %{struct: struct} do
+      assert Build.into(%FIFO{}, [1, 2, 3], fn v -> v * 2 end) ==
+               %{__struct__: FIFO, list: [2, 4, 6]}
+
+      assert Build.into(struct, [:a, :b, :c], &Function.identity/1) ==
+               %{__struct__: FIFO, list: [2, 4, 6, :a, :b, :c]}
+
+      assert Build.into(%FIFO{}, [a: 1, b: 2, c: 3], fn {k, v} -> {k, v * 2} end) ==
+               %{__struct__: FIFO, list: [a: 2, b: 4, c: 6]}
+
+      assert Build.into(%FIFO{}, 1..3, fn v -> v * 2 end) ==
+               %{__struct__: FIFO, list: [2, 4, 6]}
+
+      assert Build.into(%FIFO{}, struct, fn v -> v * 2 end) ==
+               %{__struct__: FIFO, list: [12, 8, 4]}
+
+      assert Build.into(struct, %{__struct__: FIFO, list: [1, 2, 3]}, &Function.identity/1) ==
+               %{__struct__: FIFO, list: [2, 4, 6, 3, 2, 1]}
+
+      assert Build.into(struct, %{__struct__: FILO, list: [1, 2, 3]}, &Function.identity/1) ==
+               %{__struct__: FIFO, list: [2, 4, 6, 1, 2, 3]}
+
+      assert Build.into(struct, %{__struct__: ALL_FIRST, list: [1, 2, 3]}, &Function.identity/1) ==
+               %{__struct__: FIFO, list: [2, 4, 6, 1, 2, 3]}
+
+      assert Build.into(%{__struct__: ALL_FIRST, list: [1, 2, 3]}, struct, &Function.identity/1) ==
+               %{__struct__: ALL_FIRST, list: [2, 4, 6, 1, 2, 3]}
+    end
   end
 
   test "FILO" do

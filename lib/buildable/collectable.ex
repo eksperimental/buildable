@@ -21,14 +21,20 @@ end
 defimpl Buildable.Collectable, for: List do
   @impl true
   def into(list) do
+    buildable_module = Buildable.impl_for(list)
+
     fun = fn
       list_acc, {:cont, elem} ->
         [elem | list_acc]
 
       list_acc, :done ->
         # This the different than the Collectible.List implementation
-        # We allow inserting into non-empty lists
-        :lists.reverse(list_acc) ++ list
+        # We do allow inserting into non-empty lists
+        if buildable_module.default(:into_position) == :last do
+          :lists.reverse(list_acc) ++ list
+        else
+          list_acc ++ list
+        end
 
       _list_acc, :halt ->
         :ok
@@ -55,7 +61,7 @@ defimpl Buildable.Collectable, for: Any do
 
     fun = fn
       acc, {:cont, elem} ->
-        buildable_module.insert(acc, elem)
+        buildable_module.insert(acc, elem, buildable_module.default(:into_position))
 
       acc, :done ->
         done(acc, buildable_module)
@@ -70,24 +76,12 @@ defimpl Buildable.Collectable, for: Any do
   @compile {:inline, done: 2}
   defp done(acc, buildable_module) do
     # TO-DO: test this
-    if buildable_module.default(:reversible?) == false do
+    if buildable_module.default(:reversible?) == true or
+         buildable_module.default(:extract_position) !=
+           buildable_module.default(:into_position) do
       acc
     else
-      case buildable_module.default(:extract_position) do
-        :first ->
-          if buildable_module.default(:insert_position) == :last do
-            acc
-          else
-            buildable_module.reverse(acc)
-          end
-
-        :last ->
-          if buildable_module.default(:insert_position) == :last do
-            acc
-          else
-            buildable_module.reverse(acc)
-          end
-      end
+      buildable_module.reverse(acc)
     end
   end
 end
