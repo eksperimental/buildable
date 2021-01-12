@@ -46,12 +46,18 @@ defmodule Build do
     end
   end
 
-  defp do_into([], collection, {module, _protocol}) do
-    if module do
-      module.to_list(collection)
-    else
-      to_list(collection)
+  defmacro modulify(module, {function_name, _meta, arguments}) when is_list(arguments) do
+    quote do
+      if unquote(module) do
+        unquote(module).unquote(function_name)(unquote_splicing(arguments))
+      else
+        unquote(function_name)(unquote_splicing(arguments))
+      end
     end
+  end
+
+  defp do_into([], collection, {module, _protocol}) do
+    modulify(module, to_list(collection))
   end
 
   defp do_into(enumerable, collectable, {module, protocol})
@@ -113,11 +119,7 @@ defmodule Build do
          {module, _protocol}
        )
        when is_list(buildable) do
-    if module do
-      buildable ++ module.map(buildable_collection, transform)
-    else
-      buildable ++ map(buildable_collection, transform)
-    end
+    buildable ++ modulify(module, map(buildable_collection, transform))
   end
 
   defp into(buildable, collection, transform, {module, protocol}) do
@@ -136,11 +138,7 @@ defmodule Build do
 
   defp do_into(initial, collection, fun, callback, {module, _protocol}) do
     try do
-      if module do
-        module.reduce(collection, initial, callback)
-      else
-        reduce(collection, initial, callback)
-      end
+      modulify(module, reduce(collection, initial, callback))
     catch
       kind, reason ->
         fun.(initial, :halt)
