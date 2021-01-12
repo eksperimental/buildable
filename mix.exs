@@ -5,7 +5,7 @@ defmodule Buildable.MixProject do
     [
       app: :buildable,
       aliases: aliases(),
-      version: "0.1.0",
+      version: "0.1.0-dev",
       elixir: "~> 1.11",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
