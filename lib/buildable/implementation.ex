@@ -329,3 +329,60 @@ defimpl Buildable, for: Tuple do
     Tuple.append(tuple, term)
   end
 end
+
+defimpl Buildable, for: BitString do
+  default = [
+    insert_position: :first,
+    extract_position: :first,
+    into_position: :last,
+    reversible?: true
+  ]
+
+  use Buildable.Implementation, default: default
+
+  @impl true
+  def empty(_options \\ []) do
+    ""
+  end
+
+  @impl true
+  def extract("", position) when is_position(position) do
+    :error
+  end
+
+  def extract(binary, :first) when is_binary(binary) do
+    {first, rest} = String.split_at(binary, 1)
+    {:ok, first, rest}
+  end
+
+  def extract(<<first, rest>>, :first) do
+    {:ok, first, rest}
+  end
+
+  def extract(binary, :last) when is_binary(binary) do
+    {rest, last} = String.split_at(binary, -1)
+    {:ok, last, rest}
+  end
+
+  def extract(bitstring, :last) do
+    {last, rest} = extract_last(bitstring, "")
+    {:ok, last, rest}
+  end
+
+  defp extract_last(<<head, rest::bitstring>>, acc) do
+    extract_last(rest, <<acc::bitstring, head>>)
+  end
+
+  defp extract_last(<<last>>, acc) do
+    {last, acc}
+  end
+
+  @impl true
+  def insert(tuple, term, :first) do
+    Tuple.insert_at(tuple, 0, term)
+  end
+
+  def insert(tuple, term, :last) do
+    Tuple.append(tuple, term)
+  end
+end

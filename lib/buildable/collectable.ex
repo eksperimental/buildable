@@ -54,6 +54,11 @@ defimpl Buildable.Collectable, for: MapSet do
   defdelegate into(map_set), to: Collectable.MapSet
 end
 
+defimpl Buildable.Collectable, for: BitString do
+  @impl true
+  defdelegate into(map_set), to: Collectable.BitString
+end
+
 defimpl Buildable.Collectable, for: Any do
   @impl true
   def into(buildable) do
