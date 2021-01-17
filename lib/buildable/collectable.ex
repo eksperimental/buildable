@@ -18,6 +18,11 @@ defprotocol Buildable.Collectable do
   def into(buildable)
 end
 
+defimpl Buildable.Collectable, for: BitString do
+  @impl true
+  defdelegate into(map_set), to: Collectable.BitString
+end
+
 defimpl Buildable.Collectable, for: List do
   @impl true
   def into(list) do
@@ -52,11 +57,6 @@ end
 defimpl Buildable.Collectable, for: MapSet do
   @impl true
   defdelegate into(map_set), to: Collectable.MapSet
-end
-
-defimpl Buildable.Collectable, for: BitString do
-  @impl true
-  defdelegate into(map_set), to: Collectable.BitString
 end
 
 defimpl Buildable.Collectable, for: Any do
