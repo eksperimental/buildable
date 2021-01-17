@@ -33,6 +33,41 @@ defmodule ListsTest do
 
       assert Build.into(%{__struct__: ALL_FIRST, list: [1, 2, 3]}, struct) ==
                %{__struct__: ALL_FIRST, list: [2, 4, 6, 1, 2, 3]}
+
+      assert Build.into(%{__struct__: ALL_FIRST, list: [1, 2, 3]}, 4..6) ==
+               %{__struct__: ALL_FIRST, list: [6, 5, 4, 1, 2, 3]}
+
+      assert Build.into(struct, 1..3) ==
+               %{__struct__: FIFO, list: [2, 4, 6, 1, 2, 3]}
+
+      assert Build.into(%{__struct__: ALL_LAST, list: [1, 2, 3]}, 4..6) ==
+               %{__struct__: ALL_LAST, list: [1, 2, 3, 4, 5, 6]}
+    end
+
+    test "Build.into/3 with &Function.identity/1", %{struct: struct} do
+      assert Build.into(%FIFO{}, 1..3, &Function.identity/1) == Build.into(%FIFO{}, 1..3)
+
+      assert Build.into(%FIFO{}, struct, &Function.identity/1) == Build.into(%FIFO{}, struct)
+
+      assert Build.into(struct, %{__struct__: FIFO, list: [1, 2, 3]}, &Function.identity/1) ==
+               Build.into(struct, %{__struct__: FIFO, list: [1, 2, 3]})
+
+      assert Build.into(struct, %{__struct__: FILO, list: [1, 2, 3]}, &Function.identity/1) ==
+               Build.into(struct, %{__struct__: FILO, list: [1, 2, 3]})
+
+      assert Build.into(struct, %{__struct__: ALL_FIRST, list: [1, 2, 3]}, &Function.identity/1) ==
+               Build.into(struct, %{__struct__: ALL_FIRST, list: [1, 2, 3]})
+
+      assert Build.into(%{__struct__: ALL_FIRST, list: [1, 2, 3]}, struct, &Function.identity/1) ==
+               Build.into(%{__struct__: ALL_FIRST, list: [1, 2, 3]}, struct)
+
+      assert Build.into(%{__struct__: ALL_FIRST, list: [1, 2, 3]}, 4..6, &Function.identity/1) ==
+               Build.into(%{__struct__: ALL_FIRST, list: [1, 2, 3]}, 4..6)
+
+      assert Build.into(struct, 1..3, &Function.identity/1) == Build.into(struct, 1..3)
+
+      assert Build.into(%{__struct__: ALL_LAST, list: [1, 2, 3]}, 4..6, &Function.identity/1) ==
+               Build.into(%{__struct__: ALL_LAST, list: [1, 2, 3]}, 4..6)
     end
 
     test "Build.into/3", %{struct: struct} do

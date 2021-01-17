@@ -1,6 +1,6 @@
 defmodule BuildTest do
   use ExUnit.Case
-  doctest Buildable
+  doctest Build
 
   setup_all _ do
     %{

@@ -23,6 +23,11 @@ positions = %{
     extract: :first,
     insert: :first,
     into: :first
+  ],
+  ALL_LAST => [
+    extract: :last,
+    insert: :last,
+    into: :last
   ]
 }
 

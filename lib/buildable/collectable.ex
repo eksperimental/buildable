@@ -28,7 +28,7 @@ defimpl Buildable.Collectable, for: List do
         [elem | list_acc]
 
       list_acc, :done ->
-        # This the different than the Collectible.List implementation
+        # This is different than the Collectible.List implementation
         # We do allow inserting into non-empty lists
         if buildable_module.default(:into_position) == :last do
           :lists.reverse(list_acc) ++ list
@@ -60,16 +60,29 @@ defimpl Buildable.Collectable, for: BitString do
 end
 
 defimpl Buildable.Collectable, for: Any do
+  import Buildable.Util, only: [invert_position: 1]
+
   @impl true
   def into(buildable) do
     buildable_module = Buildable.impl_for(buildable)
 
+    reverse_result? =
+      buildable_module.default(:reversible?) == true and
+        buildable_module.default(:extract_position) ==
+          buildable_module.default(:into_position)
+
+    into(buildable, buildable_module, reverse_result?)
+  end
+
+  defp into(buildable, buildable_module, reverse_result?)
+
+  defp into(buildable, buildable_module, false) do
     fun = fn
       acc, {:cont, elem} ->
         buildable_module.insert(acc, elem, buildable_module.default(:into_position))
 
       acc, :done ->
-        done(acc, buildable_module)
+        acc
 
       _acc, :halt ->
         :ok
@@ -78,15 +91,20 @@ defimpl Buildable.Collectable, for: Any do
     {buildable, fun}
   end
 
-  @compile {:inline, done: 2}
-  defp done(acc, buildable_module) do
-    # TO-DO: test this
-    if buildable_module.default(:reversible?) == true or
-         buildable_module.default(:extract_position) !=
-           buildable_module.default(:into_position) do
-      acc
-    else
-      buildable_module.reverse(acc)
+  defp into(buildable, buildable_module, true) do
+    inverted_into_position = invert_position(buildable_module.default(:into_position))
+
+    fun = fn
+      acc, {:cont, elem} ->
+        buildable_module.insert(acc, elem, inverted_into_position)
+
+      acc, :done ->
+        buildable_module.reverse(acc)
+
+      _acc, :halt ->
+        :ok
     end
+
+    {buildable_module.reverse(buildable), fun}
   end
 end

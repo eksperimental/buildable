@@ -39,14 +39,14 @@ defmodule Build do
   def into(buildable, collection) do
     cond do
       impl?(collection, Buildable) ->
-        do_into(buildable, collection, {nil, Buildable.Collectable})
+        do_into(buildable, collection, nil)
 
       impl?(collection, Enumerable) ->
-        do_into(buildable, collection, {Enum, Collectable})
+        do_into(buildable, collection, Enum)
     end
   end
 
-  defmacro modulify(module, {function_name, _meta, arguments}) when is_list(arguments) do
+  defmacrop modulify(module, {function_name, _meta, arguments}) when is_list(arguments) do
     quote do
       if unquote(module) do
         unquote(module).unquote(function_name)(unquote_splicing(arguments))
@@ -56,46 +56,32 @@ defmodule Build do
     end
   end
 
-  defp do_into([], collection, {module, _protocol}) do
+  defp do_into([], collection, module) do
     modulify(module, to_list(collection))
   end
 
-  defp do_into(enumerable, collectable, {module, protocol})
-       when is_struct(enumerable) or is_struct(collectable) do
-    into_protocol(enumerable, collectable, {module, protocol})
+  defp do_into(enumerable, collection, module)
+       when is_struct(enumerable) or is_struct(collection) do
+    into(enumerable, collection, nil, module)
   end
 
-  defp do_into(%{} = buildable, %{} = collection, {_module, _protocol}) do
+  defp do_into(%{} = buildable, %{} = collection, _module) do
     Map.merge(buildable, collection)
   end
 
-  defp do_into(%{} = buildable, collection, {_module, _protocol})
+  defp do_into(%{} = buildable, collection, _module)
        when is_list(collection) do
     Map.merge(buildable, :maps.from_list(collection))
   end
 
-  defp do_into(%{} = buildable, collection, {_module, _protocol}) do
+  defp do_into(%{} = buildable, collection, _module) do
     reduce(buildable, collection, fn {key, val}, acc ->
       Map.put(acc, key, val)
     end)
   end
 
-  defp do_into(buildable, collection, {module, protocol}) do
-    into_protocol(buildable, collection, {module, protocol})
-  end
-
-  defp into_protocol(buildable, collection, {module, protocol}) do
-    {initial, fun} = Buildable.into(buildable)
-
-    do_into(
-      initial,
-      collection,
-      fun,
-      fn entry, acc ->
-        fun.(acc, {:cont, entry})
-      end,
-      {module, protocol}
-    )
+  defp do_into(buildable, collection, module) do
+    into(buildable, collection, nil, module)
   end
 
   #############################
@@ -105,38 +91,37 @@ defmodule Build do
   def into(buildable, collection, transform) do
     cond do
       impl?(collection, Buildable) ->
-        into(buildable, collection, transform, {nil, Buildable})
+        into(buildable, collection, transform, nil)
 
       impl?(collection, Enumerable) ->
-        into(buildable, collection, transform, {Enum, Enumerable})
+        into(buildable, collection, transform, Enum)
     end
   end
 
   defp into(
          buildable,
-         buildable_collection,
+         collection,
          transform,
-         {module, _protocol}
+         module
        )
        when is_list(buildable) do
-    buildable ++ modulify(module, map(buildable_collection, transform))
+    buildable ++ modulify(module, map(collection, transform))
   end
 
-  defp into(buildable, collection, transform, {module, protocol}) do
+  defp into(buildable, collection, transform, module) do
     {initial, fun} = Buildable.Collectable.into(buildable)
 
-    do_into(
-      initial,
-      collection,
-      fun,
-      fn entry, acc ->
-        fun.(acc, {:cont, transform.(entry)})
-      end,
-      {module, protocol}
-    )
-  end
+    callback =
+      if is_nil(transform) do
+        fn entry, acc ->
+          fun.(acc, {:cont, entry})
+        end
+      else
+        fn entry, acc ->
+          fun.(acc, {:cont, transform.(entry)})
+        end
+      end
 
-  defp do_into(initial, collection, fun, callback, {module, _protocol}) do
     try do
       modulify(module, reduce(collection, initial, callback))
     catch
@@ -157,8 +142,8 @@ defmodule Build do
   end
 
   @doc """
-  Returns a list where each element is the result of invoking
-  `fun` on each corresponding element of `buildable`.
+  Returns a new buildable where each element is the result of invoking
+  `fun` on each element.
 
   For maps, the function expects a key-value tuple.
 
@@ -167,8 +152,8 @@ defmodule Build do
       iex> Build.map([1, 2, 3], fn x -> x * 2 end)
       [2, 4, 6]
 
-      iex> Build.map([a: 1, b: 2], fn {k, v} -> {k, -v} end)
-      [a: -1, b: -2]
+      iex> Build.map(%{a: 1, b: 2}, fn {k, v} -> {k, -v} end)
+      %{a: -1, b: -2}
 
   """
   @spec map(t, (element -> any)) :: list
@@ -179,11 +164,9 @@ defmodule Build do
   end
 
   def map(buildable, fun) do
-    reducer = fn entry, acc ->
-      [fun.(entry) | acc]
-    end
+    buildable_module = Buildable.impl_for(buildable)
 
-    reduce(buildable, [], reducer) |> reverse()
+    into(buildable_module.to_empty(buildable), buildable, fun, nil)
   end
 
   #############################
@@ -251,7 +234,7 @@ defmodule Build do
   def to_list(%{} = buildable), do: Map.to_list(buildable)
   def to_list(buildable), do: do_to_list(buildable)
 
-  def do_to_list(buildable) do
+  defp do_to_list(buildable) do
     buildable_module = Buildable.impl_for(buildable)
     result = into([], buildable, &Function.identity/1)
 

@@ -9,10 +9,10 @@ The very basic version of any term type can be implemented with only three funct
 - `insert/3`: which inserts an element into the term;
 - `extract/2`: which extracts an element out of the term.
 
-There are other two protocols that get automatically implemeneted, based on the callback implementations for `Buildable`,
+There are other two protocols that get automatically implemeneted, based on the fallback implementations for `Buildable`,
 which are:
 - `Buildable.Collectable`: it collects elements into a buildable term. It is analog to Elixir core's `Collectable`, with a minor improvement.
-- `Buildable.Reducible`: it reduces the buildable into an element. It is analog to Elixir core's `Enumerable`.
+- `Buildable.Reducible`: it reduces the buildable into an element. It is analog to Elixir core's `Enumerable.reduce/3`.
 
 ## Installation
 
