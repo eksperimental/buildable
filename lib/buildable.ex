@@ -44,15 +44,15 @@ defprotocol Buildable do
   @spec into(t) :: {initial_acc :: term, collector :: (term, command -> t | term)}
   def into(buildable)
 
-  @spec reverse(buildable) :: updated_buildable | buildable
-        when buildable: t(), updated_buildable: t()
-  def reverse(buildable)
-
   @spec peek(t()) :: {:ok, element()} | :error
   def peek(buildable)
 
   @spec peek(t(), position) :: {:ok, element()} | :error
   def peek(buildable, position)
+
+  @spec reverse(buildable) :: updated_buildable | buildable
+        when buildable: t(), updated_buildable: t()
+  def reverse(buildable)
 
   @spec to_empty(t(), options) :: t()
   def to_empty(buildable, options \\ [])

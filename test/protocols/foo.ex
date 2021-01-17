@@ -55,11 +55,6 @@ defimpl Buildable, for: Foo do
   def insert(%Foo{map: map} = struct, {key, value}, position) when is_position(position) do
     %{struct | map: put_in(map, [key], value)}
   end
-
-  @impl true
-  def reverse(struct) do
-    struct
-  end
 end
 
 defimpl Inspect, for: Foo do

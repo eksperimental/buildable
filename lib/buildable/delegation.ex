@@ -14,12 +14,6 @@ defmodule Buildable.Delegation do
       defdelegate empty(options \\ []), to: Buildable.unquote(__CALLER__.module)
 
       @impl Buildable
-      defdelegate into(buildable), to: Buildable
-
-      @impl Buildable
-      defdelegate new(enumerable, options \\ []), to: Buildable.unquote(__CALLER__.module)
-
-      @impl Buildable
       defdelegate extract(buildable), to: Buildable
 
       @impl Buildable
@@ -30,6 +24,18 @@ defmodule Buildable.Delegation do
 
       @impl Buildable
       defdelegate insert(buildable, term, position), to: Buildable
+
+      @impl Buildable
+      defdelegate into(buildable), to: Buildable
+
+      @impl Buildable
+      defdelegate new(enumerable, options \\ []), to: Buildable.unquote(__CALLER__.module)
+
+      @impl Buildable
+      defdelegate peek(buildable), to: Buildable
+
+      @impl Buildable
+      defdelegate peek(buildable, position), to: Buildable
 
       @impl Buildable
       defdelegate reverse(buildable), to: Buildable

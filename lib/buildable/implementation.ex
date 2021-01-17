@@ -62,16 +62,18 @@ defmodule Buildable.Implementation do
       defdelegate into(buildable), to: Buildable.Collectable
 
       @impl Buildable
-      def reverse(buildable) do
-        if default(:reversible?) do
-          {:done, result} =
-            Buildable.Reducible.reduce(buildable, {:cont, empty()}, fn element, acc ->
-              {:cont, insert(acc, element)}
-            end)
+      def peek(buildable) do
+        peek(buildable, default(:extract_position))
+      end
 
-          result
-        else
-          buildable
+      @impl Buildable
+      def peek(buildable, position) when is_position(position) do
+        case extract(buildable, position) do
+          {:ok, element, rest_buildable} ->
+            {:ok, element}
+
+          :error ->
+            :error
         end
       end
 
@@ -80,15 +82,33 @@ defmodule Buildable.Implementation do
         Buildable.impl_for(buildable).empty(options)
       end
 
-      defoverridable empty: 0,
+      @impl Buildable
+      if Module.get_attribute(module, :reversible?, true) do
+        def reverse(buildable) do
+          {:done, result} =
+            Buildable.Reducible.reduce(buildable, {:cont, empty()}, fn element, acc ->
+              {:cont, insert(acc, element)}
+            end)
+
+          result
+        end
+      else
+        def reverse(buildable) do
+          buildable
+        end
+      end
+
+      defoverridable default: 1,
+                     empty: 0,
                      extract: 1,
                      insert: 2,
                      into: 1,
                      new: 1,
+                     peek: 1,
+                     peek: 2,
                      reverse: 1,
                      to_empty: 1,
-                     to_empty: 2,
-                     default: 1
+                     to_empty: 2
     end
   end
 end
