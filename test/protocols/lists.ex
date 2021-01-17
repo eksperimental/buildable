@@ -90,14 +90,12 @@ for {module, position} <- positions do
   defimpl Buildable, for: module do
     @derive [Buildable.List]
 
-    use Buildable.Implementation,
-      default: [
-        insert_position: position[:insert],
-        into_position: position[:into],
-        extract_position: position[:extract],
-        reversible?: true
-      ]
+    @insert_position position[:insert]
+    @extract_position position[:extract]
+    @into_position position[:into]
+    @reversible? true
 
+    use Buildable.Implementation
     use Lists.Using, unquote(module)
   end
 end

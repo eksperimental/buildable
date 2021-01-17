@@ -26,7 +26,8 @@ defmodule Buildable.Implementation do
 
     quote location: :keep,
           bind_quoted: [
-            default: default
+            default: default,
+            module: __CALLER__.module
           ] do
       import Buildable.Util, only: [is_position: 1]
 
@@ -34,10 +35,11 @@ defmodule Buildable.Implementation do
       # Behaviour callbacks
 
       @impl Buildable
-      def default(:extract_position), do: unquote(Keyword.fetch!(default, :extract_position))
-      def default(:insert_position), do: unquote(Keyword.fetch!(default, :insert_position))
-      def default(:into_position), do: unquote(Keyword.fetch!(default, :into_position))
-      def default(:reversible?), do: unquote(Keyword.fetch!(default, :reversible?))
+      for option <- Keyword.keys(default) do
+        def default(unquote(option)) do
+          unquote(Module.get_attribute(module, option, default[option]))
+        end
+      end
 
       @impl Buildable
       def new(enumerable, options \\ []) when is_list(options) do
@@ -98,14 +100,12 @@ defmodule Buildable.Implementation do
 end
 
 defimpl Buildable, for: List do
-  default = [
-    insert_position: :first,
-    extract_position: :first,
-    into_position: :last,
-    reversible?: true
-  ]
+  @insert_position :first
+  @extract_position :first
+  @into_position :last
+  @reversible? true
 
-  use Buildable.Implementation, default: default
+  use Buildable.Implementation
 
   @impl true
   def empty(_options \\ []) do
@@ -137,7 +137,7 @@ defimpl Buildable, for: List do
 
   @impl true
   def peek(list) do
-    peek(list, :first)
+    peek(list, @extract_position)
   end
 
   @impl true
@@ -160,14 +160,12 @@ defimpl Buildable, for: List do
 end
 
 defimpl Buildable, for: Map do
-  default = [
-    insert_position: :first,
-    extract_position: :first,
-    into_position: :last,
-    reversible?: false
-  ]
+  @insert_position :first
+  @extract_position :first
+  @into_position :last
+  @reversible? false
 
-  use Buildable.Implementation, default: default
+  use Buildable.Implementation
 
   @impl true
   def empty(_options \\ []) do
@@ -198,7 +196,7 @@ defimpl Buildable, for: Map do
 
   @impl true
   def peek(map) do
-    peek(map, :first)
+    peek(map, @extract_position)
   end
 
   @impl true
@@ -223,14 +221,12 @@ defimpl Buildable, for: Map do
 end
 
 defimpl Buildable, for: MapSet do
-  default = [
-    insert_position: :first,
-    extract_position: :first,
-    into_position: :last,
-    reversible?: false
-  ]
+  @insert_position :first
+  @extract_position :first
+  @into_position :last
+  @reversible? false
 
-  use Buildable.Implementation, default: default
+  use Buildable.Implementation
 
   @impl true
   def empty(_options \\ []) do
@@ -263,7 +259,7 @@ defimpl Buildable, for: MapSet do
 
   @impl true
   def peek(map_set) do
-    peek(map_set, :first)
+    peek(map_set, @extract_position)
   end
 
   @impl true
@@ -290,14 +286,12 @@ defimpl Buildable, for: MapSet do
 end
 
 defimpl Buildable, for: Tuple do
-  default = [
-    insert_position: :first,
-    extract_position: :first,
-    into_position: :last,
-    reversible?: true
-  ]
+  @insert_position :first
+  @extract_position :first
+  @into_position :last
+  @reversible? true
 
-  use Buildable.Implementation, default: default
+  use Buildable.Implementation
 
   @impl true
   def empty(_options \\ []) do
@@ -328,17 +322,36 @@ defimpl Buildable, for: Tuple do
   def insert(tuple, term, :last) do
     Tuple.append(tuple, term)
   end
+
+  @impl true
+  def peek(tuple) do
+    peek(tuple, @extract_position)
+  end
+
+  @impl true
+  def peek({}, position) when is_position(position) do
+    :error
+  end
+
+  def peek(tuple, :first) do
+    {:ok, elem(tuple, 0)}
+  end
+
+  def peek(tuple, :last) do
+    size = tuple_size(tuple) - 1
+    {:ok, elem(tuple, size)}
+  end
 end
 
 defimpl Buildable, for: BitString do
-  default = [
-    insert_position: :first,
-    extract_position: :first,
-    into_position: :last,
-    reversible?: true
-  ]
+  @insert_position :last
+  @extract_position :first
+  @into_position :last
+  @reversible? true
 
-  use Buildable.Implementation, default: default
+  import Buildable.Util, only: [is_position: 1]
+
+  use Buildable.Implementation
 
   @impl true
   def empty(_options \\ []) do
@@ -378,11 +391,87 @@ defimpl Buildable, for: BitString do
   end
 
   @impl true
-  def insert(tuple, term, :first) do
-    Tuple.insert_at(tuple, 0, term)
+  def insert(binary, term, position) when is_binary(binary) and is_position(position) do
+    insert_in_binary(binary, term, position)
   end
 
-  def insert(tuple, term, :last) do
-    Tuple.append(tuple, term)
+  def insert(bitstring, term, position) when is_position(position) do
+    insert_in_bitstring(bitstring, term, position)
+  end
+
+  defp insert_in_binary(binary, term, :first) when is_integer(term),
+    do: <<term::integer, binary::binary>>
+
+  defp insert_in_binary(binary, term, :first) when is_float(term),
+    do: <<term::float, binary::binary>>
+
+  defp insert_in_binary(binary, term, :first) when is_binary(term),
+    do: <<term::binary, binary::binary>>
+
+  defp insert_in_binary(binary, term, :first) when is_bitstring(term),
+    do: <<term::bitstring, binary::binary>>
+
+  defp insert_in_binary(binary, term, :last) when is_integer(term),
+    do: <<binary::binary, term::integer>>
+
+  defp insert_in_binary(binary, term, :last) when is_float(term),
+    do: <<binary::binary, term::float>>
+
+  defp insert_in_binary(binary, term, :last) when is_binary(term),
+    do: <<binary::binary, term::binary>>
+
+  defp insert_in_binary(binary, term, :last) when is_bitstring(term),
+    do: <<binary::binary, term::bitstring>>
+
+  defp insert_in_bitstring(bitstring, term, :first) when is_integer(term),
+    do: <<term::integer, bitstring::bitstring>>
+
+  defp insert_in_bitstring(bitstring, term, :first) when is_float(term),
+    do: <<term::float, bitstring::bitstring>>
+
+  defp insert_in_bitstring(bitstring, term, :first) when is_binary(term),
+    do: <<term::binary, bitstring::bitstring>>
+
+  defp insert_in_bitstring(bitstring, term, :first) when is_bitstring(term),
+    do: <<term::bitstring, bitstring::bitstring>>
+
+  defp insert_in_bitstring(bitstring, term, :last) when is_integer(term),
+    do: <<bitstring::bitstring, term::integer>>
+
+  defp insert_in_bitstring(bitstring, term, :last) when is_float(term),
+    do: <<bitstring::bitstring, term::float>>
+
+  defp insert_in_bitstring(bitstring, term, :last) when is_binary(term),
+    do: <<bitstring::bitstring, term::binary>>
+
+  defp insert_in_bitstring(bitstring, term, :last) when is_bitstring(term),
+    do: <<bitstring::bitstring, term::bitstring>>
+
+  @impl true
+  def peek(bitstring) do
+    peek(bitstring, @extract_position)
+  end
+
+  @impl true
+  def peek(<<>>, position) when is_position(position),
+    do: :error
+
+  def peek(binary, position) when is_binary(binary) and is_position(position) do
+    case position do
+      :first ->
+        {:ok, String.first(binary)}
+
+      :last ->
+        {:ok, String.last(binary)}
+    end
+  end
+
+  def peek(<<first, _rest::bitstring>>, :first) do
+    {:ok, first}
+  end
+
+  def peek(bitstring, :last) do
+    {_rest, last} = extract_last(bitstring, "")
+    {:ok, last}
   end
 end

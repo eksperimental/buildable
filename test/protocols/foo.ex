@@ -11,14 +11,12 @@ defmodule Foo do
 end
 
 defimpl Buildable, for: Foo do
-  default = [
-    insert_position: :first,
-    extract_position: :first,
-    into_position: :last,
-    reversible?: false
-  ]
+  @insert_position :first
+  @extract_position :first
+  @into_position :last
+  @reversible? false
 
-  use Buildable.Implementation, default: default
+  use Buildable.Implementation
 
   # defguard size(struct)
   #          when is_struct(struct, Foo) and is_map_key(struct, :map) and
@@ -72,8 +70,7 @@ defimpl Inspect, for: Foo do
   end
 end
 
-# BONUS: If we want to implement the Collectable protocol, we just delegate
-# it to the generic implementation
+# BONUS: If we want to implement the Collectable protocol, we just delegate to Buildable.Collectable
 defimpl Collectable, for: Foo do
   @impl true
   defdelegate into(struct), to: Buildable.Collectable

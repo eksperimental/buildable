@@ -4,14 +4,17 @@ defmodule BuildTest do
 
   setup_all _ do
     %{
-      foo: %{__struct__: Foo, map: %{a: 2, b: 4, c: 6}}
+      foo: %{__struct__: Foo, map: %{a: 2, b: 4, c: 6}},
+      map: %{a: 2, b: 4, c: 6}
     }
   end
 
-  test "extract", %{foo: foo} do
+  test "extract", %{foo: foo, map: map} do
     assert Build.extract(foo) == Build.extract(foo, :first)
     assert Build.extract(foo, :first) == {:ok, {:a, 2}, %{__struct__: Foo, map: %{b: 4, c: 6}}}
     assert Build.extract(foo, :last) == {:ok, {:c, 6}, %{__struct__: Foo, map: %{a: 2, b: 4}}}
+
+    assert Build.extract(map) == {:ok, {:a, 2}, %{b: 4, c: 6}}
   end
 
   test "insert", %{foo: foo} do

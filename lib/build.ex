@@ -32,6 +32,12 @@ defmodule Build do
   @spec to_empty(t(), options) :: t()
   defdelegate to_empty(enumerable, options \\ []), to: Buildable
 
+  @spec peek(t()) :: {:ok, element()} | :error
+  defdelegate peek(buildable), to: Buildable
+
+  @spec peek(t(), position) :: {:ok, element()} | :error
+  defdelegate peek(buildable, position), to: Buildable
+
   #############################
   # into/2
 
