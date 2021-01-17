@@ -13,10 +13,9 @@ defprotocol Buildable do
   Defines the default options for the implementation.transform_fun
 
   Option can be:
-  - `insert_position`: where to insert a new element in the buildable. Accepted values are `:first`, `:last`, and `nil`.
-    `nil` means that the buildable has not concept of inserting elements in a particular order.
-  - `extract_position`: where to extract the element from the buildable. Accepted values are `:first`, `:last`, and `nil`.
-    `nil` means that the buildable has not concept of inserting elements in a particular order.
+  - `extract_position`: where to extract the element from the buildable. Accepted values are `:first`, and `:last`.
+  - `insert_position`: where to insert a new element in the buildable. Accepted values are `:first`, and `:last`.
+  - `into_position`: where to extract the element from the buildable. Accepted values are `:first`, and `:last`.
   """
   @callback default(:extract_position) :: position()
   @callback default(:insert_position) :: position()
