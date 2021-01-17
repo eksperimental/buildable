@@ -8,25 +8,19 @@ defmodule Buildable.Implementation do
   To use it call `use Buildable.Implementation`.
   """
 
-  @default [
-    insert_position: nil,
-    extract_position: nil,
-    into_position: nil,
-    reversible?: nil
+  @default_options [
+    :insert_position,
+    :extract_position,
+    :into_position,
+    :reversible?
   ]
 
-  defmacro __using__(buildable_options) do
-    buildable_options = Macro.expand(buildable_options, __CALLER__)
-
-    default =
-      case Keyword.get(buildable_options, :default, []) do
-        [] -> @default
-        default -> default
-      end
+  defmacro __using__(_buildable_options) do
+    # buildable_options = Macro.expand(buildable_options, __CALLER__)
 
     quote location: :keep,
           bind_quoted: [
-            default: default,
+            default_options: @default_options,
             module: __CALLER__.module
           ] do
       import Buildable.Util, only: [is_position: 1]
@@ -35,9 +29,9 @@ defmodule Buildable.Implementation do
       # Behaviour callbacks
 
       @impl Buildable
-      for option <- Keyword.keys(default) do
+      for option <- default_options do
         def default(unquote(option)) do
-          unquote(Module.get_attribute(module, option, default[option]))
+          unquote(Module.get_attribute(module, option, nil))
         end
       end
 
