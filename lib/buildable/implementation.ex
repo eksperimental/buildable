@@ -378,9 +378,11 @@ defimpl Buildable, for: BitString do
   end
 
   def extract(bitstring, :last) do
-    {last, rest} = extract_last(bitstring, "")
+    {last, rest} = extract_last(bitstring)
     {:ok, last, rest}
   end
+
+  defp extract_last(bitstring, acc \\ "")
 
   defp extract_last(<<head, rest::bitstring>>, acc) do
     extract_last(rest, <<acc::bitstring, head>>)
@@ -471,7 +473,7 @@ defimpl Buildable, for: BitString do
   end
 
   def peek(bitstring, :last) do
-    {_rest, last} = extract_last(bitstring, "")
+    {_rest, last} = extract_last(bitstring)
     {:ok, last}
   end
 end
