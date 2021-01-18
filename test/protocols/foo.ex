@@ -65,8 +65,22 @@ defimpl Inspect, for: Foo do
   end
 end
 
-# BONUS: If we want to implement the Collectable protocol, we just delegate to Buildable.Collectable
-defimpl Collectable, for: Foo do
-  @impl true
-  defdelegate into(struct), to: Buildable.Collectable
+defimpl Enumerable, for: Foo do
+  def count(%Foo{map: map}) do
+    {:ok, map_size(map)}
+  end
+
+  def member?(%Foo{map: map}, {key, value}) do
+    {:ok, match?(%{^key => ^value}, map)}
+  end
+
+  def member?(_struct, _other) do
+    {:ok, false}
+  end
+
+  def slice(_struct), do: {:error, __MODULE__}
+
+  def reduce(%Foo{map: map}, acc, fun) do
+    Enumerable.List.reduce(:maps.to_list(map), acc, fun)
+  end
 end

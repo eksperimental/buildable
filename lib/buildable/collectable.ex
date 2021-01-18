@@ -18,9 +18,9 @@ defprotocol Buildable.Collectable do
   def into(buildable)
 end
 
-defimpl Buildable.Collectable, for: BitString do
+defimpl Buildable.Collectable, for: [BitString, Map, MapSet] do
   @impl true
-  defdelegate into(map_set), to: Collectable.BitString
+  defdelegate into(buildable), to: Collectable
 end
 
 defimpl Buildable.Collectable, for: List do
@@ -33,8 +33,8 @@ defimpl Buildable.Collectable, for: List do
         [elem | list_acc]
 
       list_acc, :done ->
-        # This is different than the Collectible.List implementation
-        # We do allow inserting into non-empty lists
+        # This implementation is different than the one in Collectible.List.
+        # Here ee do allow inserting into non-empty lists
         if buildable_module.default(:into_position) == :last do
           :lists.reverse(list_acc) ++ list
         else
@@ -49,34 +49,31 @@ defimpl Buildable.Collectable, for: List do
   end
 end
 
-defimpl Buildable.Collectable, for: Map do
-  @impl true
-  defdelegate into(map), to: Collectable.Map
-end
-
-defimpl Buildable.Collectable, for: MapSet do
-  @impl true
-  defdelegate into(map_set), to: Collectable.MapSet
-end
-
 defimpl Buildable.Collectable, for: Any do
   import Buildable.Util, only: [invert_position: 1]
 
   @impl true
   def into(buildable) do
-    buildable_module = Buildable.impl_for(buildable)
+    # We fallback to Collectable.into if it is implemented for this buildable.
+    case Collectable.impl_for(buildable) do
+      nil ->
+        buildable_module = Buildable.impl_for(buildable)
 
-    reverse_result? =
-      buildable_module.default(:reversible?) == true and
-        buildable_module.default(:extract_position) ==
-          buildable_module.default(:into_position)
+        reverse_result? =
+          buildable_module.default(:reversible?) == true and
+            buildable_module.default(:extract_position) ==
+              buildable_module.default(:into_position)
 
-    into(buildable, buildable_module, reverse_result?)
+        into_any(buildable, buildable_module, reverse_result?)
+
+      collectable_module ->
+        collectable_module.into(buildable)
+    end
   end
 
-  defp into(buildable, buildable_module, reverse_result?)
+  defp into_any(buildable, buildable_module, reverse_result?)
 
-  defp into(buildable, buildable_module, false) do
+  defp into_any(buildable, buildable_module, false) do
     fun = fn
       acc, {:cont, elem} ->
         buildable_module.insert(acc, elem, buildable_module.default(:into_position))
@@ -91,7 +88,7 @@ defimpl Buildable.Collectable, for: Any do
     {buildable, fun}
   end
 
-  defp into(buildable, buildable_module, true) do
+  defp into_any(buildable, buildable_module, true) do
     inverted_into_position = invert_position(buildable_module.default(:into_position))
 
     fun = fn

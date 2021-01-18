@@ -242,7 +242,7 @@ defmodule Build do
 
   defp do_to_list(buildable) do
     buildable_module = Buildable.impl_for(buildable)
-    result = into([], buildable, &Function.identity/1)
+    result = into([], buildable)
 
     if buildable_module.default(:reversible?) and
          buildable_module.default(:extract_position) == buildable_module.default(:into_position) do
