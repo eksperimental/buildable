@@ -9,8 +9,8 @@ defmodule Buildable.Implementation do
   """
 
   @default_options [
-    :insert_position,
     :extract_position,
+    :insert_position,
     :into_position,
     :reversible?
   ]
@@ -21,9 +21,24 @@ defmodule Buildable.Implementation do
     quote location: :keep,
           bind_quoted: [
             default_options: @default_options,
+            caller: Macro.escape(__CALLER__),
             module: __CALLER__.module
           ] do
       import Buildable.Util, only: [is_position: 1]
+
+      missing_attributes =
+        for option <- default_options,
+            Module.get_attribute(module, option, :undefined) == :undefined,
+            do: option
+
+      if missing_attributes != [] do
+        raise Buildable.MissingArgumentError,
+          attributes: missing_attributes,
+          caller_module: module,
+          file: caller.file,
+          line: caller.line,
+          module: Buildable.Implementation
+      end
 
       ##############################################
       # Behaviour callbacks

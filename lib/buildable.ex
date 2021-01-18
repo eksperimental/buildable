@@ -60,3 +60,23 @@ defprotocol Buildable do
   # FIX THIS, REPORT TO ELIXIR: , to_empty: 1
   @optional_callbacks empty: 0, new: 1, extract: 1, insert: 2, peek: 1, peek: 2
 end
+
+defmodule Buildable.MissingArgumentError do
+  defexception [:file, :line, :attributes, :module, :caller_module]
+
+  @impl true
+  def message(%{
+        file: file,
+        line: line,
+        attributes: attributes,
+        caller_module: caller_module,
+        module: module
+      }) do
+    attributes = Enum.join(Enum.map(attributes, &"@#{&1}"), ", ")
+
+    Exception.format_file_line(Path.relative_to_cwd(file), line) <>
+      " attributes #{attributes} are required to be defined in #{inspect(caller_module)} before calling \"use #{
+        inspect(module)
+      }\""
+  end
+end
