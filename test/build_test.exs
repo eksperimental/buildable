@@ -22,16 +22,21 @@ defmodule BuildTest do
     assert Build.insert(foo, {:d, 8}) == %{__struct__: Foo, map: %{a: 2, b: 4, c: 6, d: 8}}
   end
 
-  test "into/2" do
+  test "into/2", %{foo: foo} do
     assert Build.into([], 1..5) == [1, 2, 3, 4, 5]
     assert Build.into(%{}, a: 1, b: 2) == %{a: 1, b: 2}
     assert Build.into(%{c: 3}, a: 1, b: 2) == %{a: 1, b: 2, c: 3}
     assert Build.into([], %{a: 1, b: 2}) == [a: 1, b: 2]
     assert Build.into([], 1..3) == [1, 2, 3]
     assert Build.into("", ["H", "i"]) == "Hi"
+
+    assert Build.into(foo, a: 1, b: 2, x: 100) == %{
+             __struct__: Foo,
+             map: %{a: 1, b: 2, c: 6, x: 100}
+           }
   end
 
-  test "into/3" do
+  test "into/3", %{foo: foo} do
     assert Build.into(%Foo{}, [a: 1, b: 2, c: 3], fn {k, v} -> {k, v * 2} end) ==
              %{__struct__: Foo, map: %{a: 2, b: 4, c: 6}}
 
@@ -46,7 +51,14 @@ defmodule BuildTest do
 
     assert_raise FunctionClauseError, fn ->
       Build.into(%{a: 1}, [2, 3], & &1)
+
+      assert Build.into(foo, a: 1, b: 2, x: 100) == Build.into(foo, [a: 1, b: 2, x: 100], & &1)
     end
+  end
+
+  test "reduce/3", %{foo: foo} do
+    # here we rely delegate to the implementation of Enumerable.Foo
+    assert Build.reduce(foo, Foo.empty(), &Build.insert(&2, &1)) == foo
   end
 
   test "to_empty", %{foo: foo} do
