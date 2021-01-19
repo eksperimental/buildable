@@ -51,8 +51,26 @@ defmodule Buildable.Implementation do
       end
 
       @impl Buildable
-      def new(enumerable, options \\ []) when is_list(options) do
-        Build.into(unquote(__MODULE__).empty(options), enumerable)
+      def new(collection, options \\ []) when is_list(options) do
+        cond do
+          impl?(collection, Buildable) ->
+            Build.into(unquote(__MODULE__).empty(options), collection)
+
+          impl?(collection, Enumerable) ->
+            Enum.into(unquote(__MODULE__).empty(options), collection)
+
+          true ->
+            raise ArgumentError,
+              message: "Only buildables and enumerables are valid as the first argument"
+        end
+      end
+
+      defp impl?(term, protocol) when is_atom(protocol) do
+        if Code.ensure_loaded?(protocol) and protocol.impl_for(term) != nil do
+          true
+        else
+          false
+        end
       end
 
       ##############################################
@@ -119,6 +137,7 @@ defmodule Buildable.Implementation do
                      insert: 2,
                      into: 1,
                      new: 1,
+                     new: 2,
                      peek: 1,
                      peek: 2,
                      reverse: 1,

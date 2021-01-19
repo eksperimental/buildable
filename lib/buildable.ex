@@ -24,8 +24,8 @@ defprotocol Buildable do
 
   @callback empty() :: t()
   @callback empty(options()) :: t()
-  @callback new(Enum.t()) :: t()
-  @callback new(Enum.t(), options()) :: t()
+  @callback new(collection :: t() | Enum.t()) :: t()
+  @callback new(collection :: t() | Enum.t(), options()) :: t()
 
   @spec extract(t()) ::
           {:ok, element(), updated_buildable :: t()} | :error
