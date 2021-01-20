@@ -3,9 +3,9 @@ defmodule Foo do
   Sample implementation of Buildable behaviour and protocol.
   """
 
-  defstruct map: %{}
-
   @behaviour Buildable
+
+  defstruct map: %{}
 
   use Buildable.Delegation
 end

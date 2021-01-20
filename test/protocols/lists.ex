@@ -51,12 +51,12 @@ defmodule Lists.Using do
       ##############################################
       # Behaviour callbacks
 
-      @impl true
+      @impl Buildable.Behaviour
       def empty(_options), do: %unquote(module){}
 
       ##############################################
       # Protocol callbacks
-      @impl true
+      @impl Buildable
       def extract(%unquote(module){list: list} = struct, position) do
         case Buildable.List.extract(list, position) do
           :error ->
@@ -67,18 +67,18 @@ defmodule Lists.Using do
         end
       end
 
-      @impl true
+      @impl Buildable
       def insert(%unquote(module){list: list} = struct, term, position) do
         new_list = Buildable.List.insert(list, term, position)
         %{struct | list: new_list}
       end
 
-      @impl true
+      @impl Buildable
       def reverse(%unquote(module){list: list} = struct) do
         %{struct | list: Buildable.List.reverse(list)}
       end
 
-      @impl true
+      @impl Buildable
       def to_empty(%unquote(module){list: list} = struct, options \\ []) do
         %{struct | list: Buildable.List.to_empty(list, options)}
       end

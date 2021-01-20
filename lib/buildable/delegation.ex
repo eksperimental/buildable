@@ -6,11 +6,13 @@ defmodule Buildable.Delegation do
   To use it call `use Buildable.Delegation`.
   """
   defmacro __using__(_using_options) do
-    quote do
-      @impl Buildable
+    quote location: :keep do
+      @behaviour Buildable.Behaviour
+
+      @impl Buildable.Behaviour
       defdelegate default(option), to: Buildable.unquote(__CALLER__.module)
 
-      @impl Buildable
+      @impl Buildable.Behaviour
       defdelegate empty(options \\ []), to: Buildable.unquote(__CALLER__.module)
 
       @impl Buildable
@@ -28,7 +30,7 @@ defmodule Buildable.Delegation do
       @impl Buildable
       defdelegate into(buildable), to: Buildable
 
-      @impl Buildable
+      @impl Buildable.Behaviour
       defdelegate new(enumerable, options \\ []), to: Buildable.unquote(__CALLER__.module)
 
       @impl Buildable

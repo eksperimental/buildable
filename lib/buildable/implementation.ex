@@ -3,7 +3,7 @@ defmodule Buildable.Implementation do
   Convenience module providing the `__using__/1` macro.
 
   It defines the default implementations for
-  `c:Buildable.new/1`, `c:Buildable.new/2`, `c:Buildable.to_empty/2`.
+  `c:Buildable.Behaviour.new/1`, `c:Buildable.Behaviour.new/2`, `c:Buildable.to_empty/2`.
 
   To use it call `use Buildable.Implementation`.
   """
@@ -26,6 +26,8 @@ defmodule Buildable.Implementation do
           ] do
       import Buildable.Util, only: [is_position: 1]
 
+      @behaviour Buildable.Behaviour
+
       missing_attributes =
         for option <- default_options,
             Module.get_attribute(module, option, :undefined) == :undefined,
@@ -43,14 +45,19 @@ defmodule Buildable.Implementation do
       ##############################################
       # Behaviour callbacks
 
-      @impl Buildable
+      @impl Buildable.Behaviour
       for option <- default_options do
         def default(unquote(option)) do
           unquote(Module.get_attribute(module, option, nil))
         end
       end
 
-      @impl Buildable
+      @impl Buildable.Behaviour
+      def empty() do
+        unquote(__MODULE__).empty([])
+      end
+
+      @impl Buildable.Behaviour
       def new(collection, options \\ []) when is_list(options) do
         cond do
           impl?(collection, Buildable) ->
@@ -75,11 +82,6 @@ defmodule Buildable.Implementation do
 
       ##############################################
       # Protocol callbacks
-
-      @impl Buildable
-      def empty() do
-        unquote(__MODULE__).empty([])
-      end
 
       @impl Buildable
       def extract(buildable) do
@@ -157,12 +159,12 @@ defimpl Buildable, for: BitString do
 
   use Buildable.Implementation
 
-  @impl true
+  @impl Buildable.Behaviour
   def empty(_options \\ []) do
     ""
   end
 
-  @impl true
+  @impl Buildable
   def extract("", position) when is_position(position) do
     :error
   end
@@ -196,7 +198,7 @@ defimpl Buildable, for: BitString do
     {last, acc}
   end
 
-  @impl true
+  @impl Buildable
   def insert(binary, term, position) when is_binary(binary) and is_position(position) do
     insert_in_binary(binary, term, position)
   end
@@ -253,12 +255,12 @@ defimpl Buildable, for: BitString do
   defp insert_in_bitstring(bitstring, term, :last) when is_bitstring(term),
     do: <<bitstring::bitstring, term::bitstring>>
 
-  @impl true
+  @impl Buildable
   def peek(bitstring) do
     peek(bitstring, @extract_position)
   end
 
-  @impl true
+  @impl Buildable
   def peek(<<>>, position) when is_position(position),
     do: :error
 
@@ -290,12 +292,12 @@ defimpl Buildable, for: List do
 
   use Buildable.Implementation
 
-  @impl true
+  @impl Buildable.Behaviour
   def empty(_options \\ []) do
     []
   end
 
-  @impl true
+  @impl Buildable
   def extract([], position) when is_position(position) do
     :error
   end
@@ -309,7 +311,7 @@ defimpl Buildable, for: List do
     {:ok, head, reverse(rest)}
   end
 
-  @impl true
+  @impl Buildable
   def insert(list, term, :first) do
     [term | list]
   end
@@ -318,12 +320,12 @@ defimpl Buildable, for: List do
     list ++ [term]
   end
 
-  @impl true
+  @impl Buildable
   def peek(list) do
     peek(list, @extract_position)
   end
 
-  @impl true
+  @impl Buildable
   def peek([head | _rest], :first) do
     {:ok, head}
   end
@@ -336,7 +338,7 @@ defimpl Buildable, for: List do
     :error
   end
 
-  @impl true
+  @impl Buildable
   def reverse(list) do
     :lists.reverse(list)
   end
@@ -350,12 +352,12 @@ defimpl Buildable, for: Map do
 
   use Buildable.Implementation
 
-  @impl true
+  @impl Buildable.Behaviour
   def empty(_options \\ []) do
     %{}
   end
 
-  @impl true
+  @impl Buildable
   def extract(map, position) when map == %{} and is_position(position) do
     :error
   end
@@ -372,17 +374,17 @@ defimpl Buildable, for: Map do
     {:ok, {key, value}, rest}
   end
 
-  @impl true
+  @impl Buildable
   def insert(map, {key, value}, position) when is_position(position) do
     Map.put(map, key, value)
   end
 
-  @impl true
+  @impl Buildable
   def peek(map) do
     peek(map, @extract_position)
   end
 
-  @impl true
+  @impl Buildable
   def peek(map, position) when map == %{} and is_position(position) do
     :error
   end
@@ -397,7 +399,7 @@ defimpl Buildable, for: Map do
     {:ok, Map.get(map, key)}
   end
 
-  @impl true
+  @impl Buildable
   def reverse(map) do
     map
   end
@@ -411,12 +413,12 @@ defimpl Buildable, for: MapSet do
 
   use Buildable.Implementation
 
-  @impl true
+  @impl Buildable.Behaviour
   def empty(_options \\ []) do
     %MapSet{}
   end
 
-  @impl true
+  @impl Buildable
   def extract(map_set, :first) do
     extract_by_index(map_set, 0)
   end
@@ -435,17 +437,17 @@ defimpl Buildable, for: MapSet do
     end
   end
 
-  @impl true
+  @impl Buildable
   def insert(map_set, term, position) when is_position(position) do
     MapSet.put(map_set, term)
   end
 
-  @impl true
+  @impl Buildable
   def peek(map_set) do
     peek(map_set, @extract_position)
   end
 
-  @impl true
+  @impl Buildable
   def peek(map_set, position) when is_position(position) do
     index =
       case position do
@@ -462,7 +464,7 @@ defimpl Buildable, for: MapSet do
     end
   end
 
-  @impl true
+  @impl Buildable
   def reverse(map_set) do
     map_set
   end
@@ -476,12 +478,12 @@ defimpl Buildable, for: Tuple do
 
   use Buildable.Implementation
 
-  @impl true
+  @impl Buildable.Behaviour
   def empty(_options \\ []) do
     {}
   end
 
-  @impl true
+  @impl Buildable
   def extract({}, position) when is_position(position) do
     :error
   end
@@ -497,7 +499,7 @@ defimpl Buildable, for: Tuple do
     {:ok, element, Tuple.delete_at(tuple, size - 1)}
   end
 
-  @impl true
+  @impl Buildable
   def insert(tuple, term, :first) do
     Tuple.insert_at(tuple, 0, term)
   end
@@ -506,12 +508,12 @@ defimpl Buildable, for: Tuple do
     Tuple.append(tuple, term)
   end
 
-  @impl true
+  @impl Buildable
   def peek(tuple) do
     peek(tuple, @extract_position)
   end
 
-  @impl true
+  @impl Buildable
   def peek({}, position) when is_position(position) do
     :error
   end

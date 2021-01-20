@@ -12,7 +12,8 @@ defmodule Buildable.MixProject do
       elixirc_paths: elixirc_paths(Mix.env()),
       preferred_cli_env: ["test.all": :test],
       test_coverage: [tool: Coverex.Task],
-      dialyzer: [ignore_warnings: "dialyzer.ignore-warnings"]
+      dialyzer: [ignore_warnings: "dialyzer.ignore-warnings"],
+      docs: docs()
     ]
   end
 
@@ -42,6 +43,24 @@ defmodule Buildable.MixProject do
     [
       "test.all": ["lint", "docs", "credo", "dialyzer", "test"],
       lint: ["format --check-formatted"]
+    ]
+  end
+
+  defp docs do
+    [
+      main: "Buildable",
+      groups_for_modules: [
+        Protocols: [
+          Buildable,
+          Buildable.Behaviour,
+          Buildable.Collectable,
+          Buildable.Reducible
+        ],
+        Convenience: [
+          Buildable.Delegation,
+          Buildable.Implementation
+        ]
+      ]
     ]
   end
 end
