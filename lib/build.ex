@@ -3,7 +3,7 @@ defmodule Build do
   Module for building buildables.
   """
   @type t :: Buildable.t()
-  @type acc :: Buildable.Reducible.acc()
+  @type acc :: any()
   @type element :: Buildable.element()
   @type options :: Buildable.options()
   @type position :: Buildable.position()
@@ -189,7 +189,7 @@ defmodule Build do
   #############################
   # reduce/3
 
-  @spec reduce(t, any, (element, acc -> acc)) :: acc
+  @spec reduce(t, acc, (element, acc -> acc)) :: acc
   def reduce(buildable, acc, fun) when is_list(buildable) do
     :lists.foldl(fun, acc, buildable)
   end
