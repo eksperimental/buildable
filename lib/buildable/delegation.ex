@@ -40,6 +40,9 @@ defmodule Buildable.Delegation do
       defdelegate peek(buildable, position), to: Buildable
 
       @impl Buildable
+      defdelegate reduce(buildable, acc, reducer_function), to: Buildable
+
+      @impl Buildable
       defdelegate reverse(buildable), to: Buildable
 
       @impl Buildable

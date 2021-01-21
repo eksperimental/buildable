@@ -30,7 +30,7 @@ defmodule Build do
   defdelegate reverse(buildable), to: Buildable
 
   @spec to_empty(t(), options) :: t()
-  defdelegate to_empty(enumerable, options \\ []), to: Buildable
+  defdelegate to_empty(buildable, options \\ []), to: Buildable
 
   @spec peek(t()) :: {:ok, element()} | :error
   defdelegate peek(buildable), to: Buildable
@@ -40,82 +40,63 @@ defmodule Build do
 
   #############################
   # into/2
+  @spec into(t(), t() | Range.t()) :: t()
+  def into(buildable, collection)
 
-  @spec into(t(), t() | Enum.t()) :: t()
-  def into(buildable, collection) do
-    cond do
-      impl?(collection, Buildable) ->
-        do_into(buildable, collection, nil)
-
-      impl?(collection, Enumerable) ->
-        do_into(buildable, collection, Enum)
-    end
+  def into([], %Range{} = range) do
+    Enum.to_list(range)
   end
 
-  defmacrop modulify(module, {function_name, _meta, arguments}) when is_list(arguments) do
-    quote do
-      if unquote(module) do
-        unquote(module).unquote(function_name)(unquote_splicing(arguments))
-      else
-        unquote(function_name)(unquote_splicing(arguments))
-      end
-    end
+  def into([], collection) do
+    to_list(collection)
   end
 
-  defp do_into([], collection, module) do
-    modulify(module, to_list(collection))
+  def into(buildable, collection)
+      when is_struct(buildable) or is_struct(collection) do
+    into_buildable(buildable, collection, nil)
   end
 
-  defp do_into(enumerable, collection, module)
-       when is_struct(enumerable) or is_struct(collection) do
-    into(enumerable, collection, nil, module)
-  end
-
-  defp do_into(%{} = buildable, %{} = collection, _module) do
+  def into(%{} = buildable, %{} = collection) do
     Map.merge(buildable, collection)
   end
 
-  defp do_into(%{} = buildable, collection, _module)
-       when is_list(collection) do
+  def into(%{} = buildable, collection)
+      when is_list(collection) do
     Map.merge(buildable, :maps.from_list(collection))
   end
 
-  defp do_into(%{} = buildable, collection, _module) do
+  def into(%{} = buildable, collection) do
     reduce(buildable, collection, fn {key, val}, acc ->
       Map.put(acc, key, val)
     end)
   end
 
-  defp do_into(buildable, collection, module) do
-    into(buildable, collection, nil, module)
+  def into(buildable, collection) do
+    into_buildable(buildable, collection, nil)
   end
 
   #############################
   # into/3
 
-  @spec into(t(), t() | Enum.t(), transform_fun()) :: t()
-  def into(buildable, collection, transform) do
-    cond do
-      impl?(collection, Buildable) ->
-        into(buildable, collection, transform, nil)
+  @spec into(t(), t(), transform_fun()) :: t()
+  def into(buildable, collection, transform)
 
-      impl?(collection, Enumerable) ->
-        into(buildable, collection, transform, Enum)
-    end
+  def into(list, %Range{} = range, transform)
+      when is_list(list) and is_function(transform, 1) do
+    list ++ Enum.map(range, transform)
   end
 
-  defp into(
-         buildable,
-         collection,
-         transform,
-         module
-       )
-       when is_list(buildable) do
-    buildable ++ modulify(module, map(collection, transform))
+  def into(list, collection, transform)
+      when is_list(list) and is_function(transform, 1) do
+    list ++ map(collection, transform)
   end
 
-  defp into(buildable, collection, transform, module) do
-    {initial, fun} = Buildable.Collectable.into(buildable)
+  def into(buildable, collection, transform) when is_function(transform, 1) do
+    into_buildable(buildable, collection, transform)
+  end
+
+  defp into_buildable(buildable, collection, transform) do
+    {initial, fun} = Buildable.into(buildable)
 
     callback =
       if is_nil(transform) do
@@ -129,21 +110,19 @@ defmodule Build do
       end
 
     try do
-      modulify(module, reduce(collection, initial, callback))
+      case collection do
+        %Range{} ->
+          Enum.reduce(collection, initial, callback)
+
+        _ ->
+          reduce(collection, initial, callback)
+      end
     catch
       kind, reason ->
         fun.(initial, :halt)
         :erlang.raise(kind, reason, __STACKTRACE__)
     else
       acc -> fun.(acc, :done)
-    end
-  end
-
-  defp impl?(term, protocol) when is_atom(protocol) do
-    if Code.ensure_loaded?(protocol) and protocol.impl_for(term) != nil do
-      true
-    else
-      false
     end
   end
 
@@ -172,7 +151,7 @@ defmodule Build do
   def map(buildable, fun) do
     buildable_module = Buildable.impl_for(buildable)
 
-    into(buildable_module.to_empty(buildable), buildable, fun, nil)
+    into_buildable(buildable_module.to_empty(buildable), buildable, fun)
   end
 
   #############################
@@ -190,7 +169,7 @@ defmodule Build do
   end
 
   def reduce(buildable, fun) do
-    Buildable.Reducible.reduce(buildable, {:cont, :first}, fn
+    Buildable.reduce(buildable, {:cont, :first}, fn
       element, {:acc, acc} ->
         {:cont, {:acc, fun.(element, acc)}}
 
@@ -228,7 +207,7 @@ defmodule Build do
   end
 
   defp reduce_buildable(buildable, acc, fun) do
-    Buildable.Reducible.reduce(buildable, {:cont, acc}, fn element, acc ->
+    Buildable.reduce(buildable, {:cont, acc}, fn element, acc ->
       {:cont, fun.(element, acc)}
     end)
     |> elem(1)

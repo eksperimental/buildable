@@ -4,7 +4,7 @@ defprotocol Buildable.Collectable do
 
   Collectable protocol used by [`buildables`](`t:Buildable.t/0`).
 
-  The `Build.into/2` and `Build.into/3` functions use this protocol to insert an [enumerable](`t:Enumerable.t/0`) into a [`buildable`](`t:Buildable.t/0`).
+  The `Build.into/2` and `Build.into/3` functions use this protocol to insert an [buildable](`t:Buildable.t/0`) or a [range](`t:Range.t/0`) into a [`buildable`](`t:Buildable.t/0`).
   """
 
   @type t :: Buildable.t()

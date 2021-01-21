@@ -28,8 +28,8 @@ defprotocol Buildable do
 
     @callback empty() :: Buildable.t()
     @callback empty(Buildable.options()) :: Buildable.t()
-    @callback new(collection :: Buildable.t() | Enum.t()) :: Buildable.t()
-    @callback new(collection :: Buildable.t() | Enum.t(), Buildable.options()) :: Buildable.t()
+    @callback new(collection :: Buildable.t() | Range.t()) :: Buildable.t()
+    @callback new(collection :: Buildable.t() | Range.t(), Buildable.options()) :: Buildable.t()
 
     # FIX THIS, REPORT TO ELIXIR: , to_empty: 1
     @optional_callbacks empty: 0, new: 1
@@ -62,6 +62,10 @@ defprotocol Buildable do
   @spec reverse(buildable) :: updated_buildable | buildable
         when buildable: t(), updated_buildable: t()
   def reverse(buildable)
+
+  @spec reduce(t(), Buildable.Reducible.acc(), Buildable.Reducible.reducer()) ::
+          Buildable.Reducible.result()
+  def reduce(buildable, acc, reducer_function)
 
   @spec to_empty(t(), options) :: t()
   def to_empty(buildable, options \\ [])
