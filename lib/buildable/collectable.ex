@@ -54,21 +54,14 @@ defimpl Buildable.Collectable, for: Any do
 
   @impl true
   def into(buildable) do
-    # We fallback to Collectable.into if it is implemented for this buildable.
-    case Collectable.impl_for(buildable) do
-      nil ->
-        buildable_module = Buildable.impl_for(buildable)
+    buildable_module = Buildable.impl_for(buildable)
 
-        reverse_result? =
-          buildable_module.default(:reversible?) == true and
-            buildable_module.default(:extract_position) ==
-              buildable_module.default(:into_position)
+    reverse_result? =
+      buildable_module.default(:reversible?) == true and
+        buildable_module.default(:extract_position) ==
+          buildable_module.default(:into_position)
 
-        into_any(buildable, buildable_module, reverse_result?)
-
-      collectable_module ->
-        collectable_module.into(buildable)
-    end
+    into_any(buildable, buildable_module, reverse_result?)
   end
 
   defp into_any(buildable, buildable_module, reverse_result?)

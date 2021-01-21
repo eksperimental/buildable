@@ -28,29 +28,8 @@ defimpl Buildable.Reducible, for: [List, Map, MapSet] do
   defdelegate reduce(list, acc, reducer_function), to: Enumerable
 end
 
-defimpl Buildable.Reducible, for: [BitString, Tuple] do
+defimpl Buildable.Reducible, for: [BitString, Tuple, Any] do
   @impl true
-  defdelegate reduce(buildable, acc, reducer_function),
-    to: Buildable.ReducibleUtil
-end
-
-defimpl Buildable.Reducible, for: Any do
-  @impl true
-
-  def reduce(buildable, acc, reducer_function) do
-    case Enumerable.impl_for(buildable) do
-      nil ->
-        Buildable.ReducibleUtil.reduce(buildable, acc, reducer_function)
-
-      # We fallback to Enumerable.reduce if it is implemented for this buildable.
-      enumerable_module ->
-        enumerable_module.reduce(buildable, acc, reducer_function)
-    end
-  end
-end
-
-defmodule Buildable.ReducibleUtil do
-  @moduledoc false
   def reduce(_buildable, {:halt, acc}, _reducer_function),
     do: {:halted, acc}
 
