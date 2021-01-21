@@ -9,7 +9,7 @@ defprotocol Buildable do
 
   defmodule Behaviour do
     @moduledoc """
-    Module that defines callbacks for the `Buildable` protocol where the first argument is not a buildable itself.
+    A module that extends the protocol `Buildable` defining callbacks where the first argument is not a buildable.
     """
 
     @doc """

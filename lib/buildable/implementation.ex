@@ -86,7 +86,7 @@ defmodule Buildable.Implementation do
       @impl Buildable
       def peek(buildable, position) when is_position(position) do
         case extract(buildable, position) do
-          {:ok, element, rest_buildable} ->
+          {:ok, element, _rest_buildable} ->
             {:ok, element}
 
           :error ->
@@ -241,11 +241,6 @@ defimpl Buildable, for: BitString do
     do: <<bitstring::bitstring, term::bitstring>>
 
   @impl Buildable
-  def peek(bitstring) do
-    peek(bitstring, @extract_position)
-  end
-
-  @impl Buildable
   def peek(<<>>, position) when is_position(position),
     do: :error
 
@@ -306,11 +301,6 @@ defimpl Buildable, for: List do
   end
 
   @impl Buildable
-  def peek(list) do
-    peek(list, @extract_position)
-  end
-
-  @impl Buildable
   def peek([head | _rest], :first) do
     {:ok, head}
   end
@@ -362,11 +352,6 @@ defimpl Buildable, for: Map do
   @impl Buildable
   def insert(map, {key, value}, position) when is_position(position) do
     Map.put(map, key, value)
-  end
-
-  @impl Buildable
-  def peek(map) do
-    peek(map, @extract_position)
   end
 
   @impl Buildable
@@ -428,11 +413,6 @@ defimpl Buildable, for: MapSet do
   end
 
   @impl Buildable
-  def peek(map_set) do
-    peek(map_set, @extract_position)
-  end
-
-  @impl Buildable
   def peek(map_set, position) when is_position(position) do
     index =
       case position do
@@ -491,11 +471,6 @@ defimpl Buildable, for: Tuple do
 
   def insert(tuple, term, :last) do
     Tuple.append(tuple, term)
-  end
-
-  @impl Buildable
-  def peek(tuple) do
-    peek(tuple, @extract_position)
   end
 
   @impl Buildable
