@@ -8,8 +8,8 @@ defprotocol Buildable.Collectable do
   """
 
   @type t :: Buildable.t()
-  @type command :: {:cont, term()} | :done | :halt
   @type collector :: (term, command -> Buildable.t() | term)
+  @type command :: {:cont, term()} | :done | :halt
 
   @fallback_to_any true
 
@@ -34,7 +34,7 @@ defimpl Buildable.Collectable, for: List do
 
       list_acc, :done ->
         # This implementation is different than the one in Collectible.List.
-        # Here ee do allow inserting into non-empty lists
+        # Here we do allow inserting into non-empty lists
         if buildable_module.default(:into_position) == :last do
           :lists.reverse(list_acc) ++ list
         else

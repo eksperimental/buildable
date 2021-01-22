@@ -135,8 +135,8 @@ defmodule Buildable.Implementation do
 end
 
 defimpl Buildable, for: BitString do
-  @insert_position :last
   @extract_position :first
+  @insert_position :last
   @into_position :last
   @reversible? true
 
@@ -265,8 +265,8 @@ defimpl Buildable, for: BitString do
 end
 
 defimpl Buildable, for: List do
-  @insert_position :first
   @extract_position :first
+  @insert_position :first
   @into_position :last
   @reversible? true
 
@@ -320,8 +320,8 @@ defimpl Buildable, for: List do
 end
 
 defimpl Buildable, for: Map do
-  @insert_position :first
   @extract_position :first
+  @insert_position :first
   @into_position :last
   @reversible? false
 
@@ -376,8 +376,8 @@ defimpl Buildable, for: Map do
 end
 
 defimpl Buildable, for: MapSet do
-  @insert_position :first
   @extract_position :first
+  @insert_position :first
   @into_position :last
   @reversible? false
 
@@ -436,8 +436,8 @@ defimpl Buildable, for: MapSet do
 end
 
 defimpl Buildable, for: Tuple do
-  @insert_position :first
   @extract_position :first
+  @insert_position :first
   @into_position :last
   @reversible? true
 
