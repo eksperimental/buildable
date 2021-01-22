@@ -8,45 +8,23 @@ defmodule Buildable.Implementation do
   To use it call `use Buildable.Implementation`.
   """
 
-  @default_options [
-    :extract_position,
-    :insert_position,
-    :into_position,
-    :reversible?
-  ]
-
   defmacro __using__(_buildable_options) do
     # buildable_options = Macro.expand(buildable_options, __CALLER__)
 
     quote location: :keep,
           bind_quoted: [
-            default_options: @default_options,
-            caller: Macro.escape(__CALLER__),
             module: __CALLER__.module
           ] do
       import Buildable.Util, only: [is_position: 1]
 
+      @before_compile Buildable.Behaviour
       @behaviour Buildable.Behaviour
-
-      missing_attributes =
-        for option <- default_options,
-            Module.get_attribute(module, option, :undefined) == :undefined,
-            do: option
-
-      if missing_attributes != [] do
-        raise Buildable.MissingArgumentError,
-          attributes: missing_attributes,
-          caller_module: module,
-          file: caller.file,
-          line: caller.line,
-          module: Buildable.Implementation
-      end
 
       ##############################################
       # Behaviour callbacks
 
       @impl Buildable.Behaviour
-      for option <- default_options do
+      for option <- Buildable.required_attributes() do
         def default(unquote(option)) do
           unquote(Module.get_attribute(module, option, nil))
         end

@@ -7,6 +7,18 @@ defprotocol Buildable do
   @type options :: keyword()
   @type position :: :first | :last
 
+  @required_attributes [
+    :extract_position,
+    :insert_position,
+    :into_position,
+    :reversible?
+  ]
+
+  @doc false
+  Kernel.def required_attributes() do
+    @required_attributes
+  end
+
   defmodule Behaviour do
     @moduledoc """
     A module that extends the protocol `Buildable` defining callbacks where the first argument is not a buildable.
@@ -33,6 +45,29 @@ defprotocol Buildable do
 
     # FIX THIS, REPORT TO ELIXIR: , to_empty: 1
     @optional_callbacks empty: 0, new: 1
+
+    Kernel.defmacro __before_compile__(_env) do
+      quote location: :keep,
+            bind_quoted: [
+              required_attributes: Buildable.required_attributes(),
+              caller: Macro.escape(__CALLER__),
+              module: __CALLER__.module
+            ] do
+        missing_attributes =
+          for attribute <- required_attributes,
+              Module.get_attribute(module, attribute, :undefined) == :undefined,
+              do: attribute
+
+        if missing_attributes != [] do
+          raise Buildable.CompileError,
+            attributes: missing_attributes,
+            caller_module: module,
+            file: caller.file,
+            line: caller.line,
+            module: Buildable.Implementation
+        end
+      end
+    end
   end
 
   @spec extract(t()) ::
@@ -73,7 +108,7 @@ defprotocol Buildable do
   @optional_callbacks extract: 1, insert: 2, peek: 1, peek: 2
 end
 
-defmodule Buildable.MissingArgumentError do
+defmodule Buildable.CompileError do
   defexception [:file, :line, :attributes, :module, :caller_module]
 
   @impl true
@@ -84,9 +119,20 @@ defmodule Buildable.MissingArgumentError do
         caller_module: caller_module,
         module: module
       }) do
-    attributes = Enum.join(Enum.map(attributes, &"@#{&1}"), ", ")
+    attributes = Enum.map(attributes, &"@#{&1}")
 
     Exception.format_file_line(Path.relative_to_cwd(file), line) <>
-      " attributes #{attributes} are required to be defined in #{inspect(caller_module)} before calling \"use #{inspect(module)}\""
+      pluralize_attributes(attributes) <>
+      " required to be defined in #{inspect(caller_module)} before calling \"use #{inspect(module)}\""
+  end
+
+  defp pluralize_attributes([attribute]) do
+    "attribute #{attribute} is"
+  end
+
+  defp pluralize_attributes([_ | _] = attributes) do
+    attributes = Enum.join(attributes, ", ")
+
+    "attributes #{attributes} are"
   end
 end
