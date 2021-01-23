@@ -17,7 +17,7 @@ defmodule Buildable.Implementation do
           ] do
       import Buildable.Util, only: [is_position: 1]
 
-      @before_compile Buildable.Behaviour
+      @before_compile Buildable.Util
       @behaviour Buildable.Behaviour
 
       ##############################################
