@@ -50,7 +50,7 @@ defimpl Buildable.Collectable, for: List do
 end
 
 defimpl Buildable.Collectable, for: Any do
-  import Buildable.Util, only: [invert_position: 1]
+  import Build.Util, only: [invert_position: 1]
 
   @impl true
   def into(buildable) do

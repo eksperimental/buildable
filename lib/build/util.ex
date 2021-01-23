@@ -1,4 +1,4 @@
-defmodule Buildable.Util do
+defmodule Build.Util do
   @moduledoc false
 
   defguard is_position(position) when position in [:first, :last]

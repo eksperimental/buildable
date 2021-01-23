@@ -15,9 +15,9 @@ defmodule Buildable.Implementation do
           bind_quoted: [
             module: __CALLER__.module
           ] do
-      import Buildable.Util, only: [is_position: 1]
+      import Build.Util, only: [is_position: 1]
 
-      @before_compile Buildable.Util
+      @before_compile Build.Util
       @behaviour Buildable.Behaviour
 
       ##############################################
@@ -118,7 +118,7 @@ defimpl Buildable, for: BitString do
   @into_position :last
   @reversible? true
 
-  import Buildable.Util, only: [is_position: 1]
+  import Build.Util, only: [is_position: 1]
 
   use Buildable.Implementation
 

@@ -56,7 +56,7 @@ defimpl Buildable, for: FooNoUse do
 
   @behaviour Buildable.Behaviour
 
-  import Buildable.Util, only: [is_position: 1]
+  import Build.Util, only: [is_position: 1]
 
   defguard size(struct) when map_size(:erlang.map_get(:map, struct))
 
