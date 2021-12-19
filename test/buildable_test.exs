@@ -26,7 +26,7 @@ defmodule BuildableTest do
     assert Foo.insert(foo, {:d, 8}) == %{__struct__: Foo, map: %{a: 2, b: 4, c: 6, d: 8}}
   end
 
-  test "Map basic functions", %{map: map} do
+  test "Map basic functions", %{map: map, foo: foo} do
     assert Foo.empty() == %Foo{}
     assert Foo.empty(map: :bar) == %Foo{}
 
@@ -35,12 +35,19 @@ defmodule BuildableTest do
     assert Foo.new([], map: :bar) == %Foo{}
 
     assert Foo.default(:insert_position) == :first
-    assert Foo.extract(map) == Foo.extract(map, :first)
-    assert Foo.extract(map, :first) == {:ok, {:a, 2}, %{b: 4, c: 6}}
+    assert Foo.extract(foo) == Foo.extract(foo, :first)
+    assert Foo.extract(foo, :first) == {:ok, {:a, 2}, %Foo{map: %{b: 4, c: 6}}}
+    assert Foo.extract(foo, :last) == {:ok, {:c, 6}, %Foo{map: %{a: 2, b: 4}}}
 
-    assert Foo.extract(map, :last) == {:ok, {:c, 6}, %{a: 2, b: 4}}
+    assert Foo.insert(foo, {:d, 8}) == %Foo{map: %{a: 2, b: 4, c: 6, d: 8}}
 
-    assert Foo.insert(map, {:d, 8}) == %{a: 2, b: 4, c: 6, d: 8}
+    assert_raise FunctionClauseError, fn ->
+      Foo.extract(map)
+    end
+
+    assert_raise FunctionClauseError, fn ->
+      Foo.extract(map, :last)
+    end
   end
 
   test "failing implementation" do

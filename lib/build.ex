@@ -11,15 +11,8 @@ defmodule Build do
 
   @compile {:inline, reduce: 3, reduce_buildable: 3}
 
-  @spec insert(t(), term) :: updated_buildable :: t()
-  defdelegate insert(buildable, term), to: Buildable
-
   @spec insert(t(), term, position()) :: updated_buildable :: t()
   defdelegate insert(buildable, term, position), to: Buildable
-
-  @spec extract(t()) ::
-          {:ok, element(), updated_buildable :: t()} | :error
-  defdelegate extract(buildable), to: Buildable
 
   @spec extract(t(), position()) ::
           {:ok, element(), updated_buildable :: t()} | :error
@@ -32,11 +25,34 @@ defmodule Build do
   @spec to_empty(t(), options) :: t()
   defdelegate to_empty(buildable, options \\ []), to: Buildable
 
+  @spec extract(t()) ::
+          {:ok, element(), updated_buildable :: t()} | :error
+  def extract(buildable) do
+    {buildable_module, default_position} = default(buildable, :extract_position)
+
+    buildable_module.extract(buildable, default_position)
+  end
+
+  @spec insert(t(), term) :: updated_buildable :: t()
+  def insert(buildable, term) do
+    {buildable_module, default_position} = default(buildable, :insert_position)
+
+    buildable_module.insert(buildable, term, default_position)
+  end
+
   @spec peek(t()) :: {:ok, element()} | :error
-  defdelegate peek(buildable), to: Buildable
+  def peek(buildable) do
+    {buildable_module, default_position} = default(buildable, :extract_position)
+
+    buildable_module.peek(buildable, default_position)
+  end
 
   @spec peek(t(), position) :: {:ok, element()} | :error
-  defdelegate peek(buildable, position), to: Buildable
+  def peek(buildable, position) do
+    buildable_module = Buildable.impl_for(buildable)
+
+    buildable_module.peek(buildable, position)
+  end
 
   #############################
   # into/2
@@ -220,15 +236,21 @@ defmodule Build do
   def to_list(buildable), do: do_to_list(buildable)
 
   defp do_to_list(buildable) do
-    buildable_module = Buildable.impl_for(buildable)
+    {buildable_module, default_reversible?} = default(buildable, :reversible?)
     result = into([], buildable)
 
-    if buildable_module.default(:reversible?) and
+    if default_reversible? and
          buildable_module.default(:extract_position) == buildable_module.default(:into_position) do
       :lists.reverse(result)
     else
       result
     end
+  end
+
+  defp default(buildable, key) when is_atom(key) do
+    buildable_module = Buildable.impl_for(buildable)
+
+    {buildable_module, buildable_module.default(key)}
   end
 end
 

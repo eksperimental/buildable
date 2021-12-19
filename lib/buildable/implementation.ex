@@ -8,6 +8,9 @@ defmodule Buildable.Implementation do
   To use it call `use Buildable.Implementation`.
   """
 
+  @doc """
+  Defines the boiler-plate functions to use when implementing the `Buildable` protocol.
+  """
   defmacro __using__(_buildable_options) do
     # buildable_options = Macro.expand(buildable_options, __CALLER__)
 
@@ -36,32 +39,26 @@ defmodule Buildable.Implementation do
       end
 
       @impl Buildable.Behaviour
-      def new(collection, options \\ []) when is_list(options) do
-        Build.into(unquote(__MODULE__).empty(options), collection)
-      end
-
-      ##############################################
-      # Protocol callbacks
-
-      @impl Buildable
       def extract(buildable) do
         extract(buildable, default(:extract_position))
       end
 
-      @impl Buildable
+      @impl Buildable.Behaviour
       def insert(buildable, term) do
         insert(buildable, term, default(:insert_position))
       end
 
-      @impl Buildable
-      defdelegate into(buildable), to: Buildable.Collectable
+      @impl Buildable.Behaviour
+      def new(collection, options \\ []) when is_list(options) do
+        Build.into(unquote(__MODULE__).empty(options), collection)
+      end
 
-      @impl Buildable
+      @impl Buildable.Behaviour
       def peek(buildable) do
         peek(buildable, default(:extract_position))
       end
 
-      @impl Buildable
+      @impl Buildable.Behaviour
       def peek(buildable, position) when is_position(position) do
         case extract(buildable, position) do
           {:ok, element, _rest_buildable} ->
@@ -71,6 +68,12 @@ defmodule Buildable.Implementation do
             :error
         end
       end
+
+      ##############################################
+      # Protocol callbacks
+
+      @impl Buildable
+      defdelegate into(buildable), to: Buildable.Collectable
 
       @impl Buildable
       defdelegate reduce(buildable, acc, reducer_function), to: Buildable.Reducible
@@ -218,7 +221,7 @@ defimpl Buildable, for: BitString do
   defp insert_in_bitstring(bitstring, term, :last) when is_bitstring(term),
     do: <<bitstring::bitstring, term::bitstring>>
 
-  @impl Buildable
+  @impl Buildable.Behaviour
   def peek(<<>>, position) when is_position(position),
     do: :error
 
@@ -278,7 +281,7 @@ defimpl Buildable, for: List do
     list ++ [term]
   end
 
-  @impl Buildable
+  @impl Buildable.Behaviour
   def peek([head | _rest], :first) do
     {:ok, head}
   end
@@ -332,7 +335,7 @@ defimpl Buildable, for: Map do
     Map.put(map, key, value)
   end
 
-  @impl Buildable
+  @impl Buildable.Behaviour
   def peek(map, position) when map == %{} and is_position(position) do
     :error
   end
@@ -390,7 +393,7 @@ defimpl Buildable, for: MapSet do
     MapSet.put(map_set, term)
   end
 
-  @impl Buildable
+  @impl Buildable.Behaviour
   def peek(map_set, position) when is_position(position) do
     index =
       case position do
@@ -451,7 +454,7 @@ defimpl Buildable, for: Tuple do
     Tuple.append(tuple, term)
   end
 
-  @impl Buildable
+  @impl Buildable.Behaviour
   def peek({}, position) when is_position(position) do
     :error
   end

@@ -14,14 +14,14 @@ defmodule FooNoUse do
   @impl Buildable.Behaviour
   defdelegate empty(options \\ []), to: Buildable.FooNoUse
 
-  @impl Buildable
-  defdelegate extract(buildable), to: Buildable
+  @impl Buildable.Behaviour
+  defdelegate extract(buildable), to: Buildable.FooNoUse
 
   @impl Buildable
   defdelegate extract(buildable, position), to: Buildable
 
-  @impl Buildable
-  defdelegate insert(buildable, term), to: Buildable
+  @impl Buildable.Behaviour
+  defdelegate insert(buildable, term), to: Buildable.FooNoUse
 
   @impl Buildable
   defdelegate insert(buildable, term, position), to: Buildable
@@ -32,11 +32,11 @@ defmodule FooNoUse do
   @impl Buildable.Behaviour
   defdelegate new(enumerable, options \\ []), to: Buildable.FooNoUse
 
-  @impl Buildable
-  defdelegate peek(buildable), to: Buildable
+  @impl Buildable.Behaviour
+  defdelegate peek(buildable), to: Buildable.FooNoUse
 
-  @impl Buildable
-  defdelegate peek(buildable, position), to: Buildable
+  @impl Buildable.Behaviour
+  defdelegate peek(buildable, position), to: Buildable.FooNoUse
 
   @impl Buildable
   defdelegate reduce(buildable, acc, reducer_function), to: Buildable
@@ -78,7 +78,12 @@ defimpl Buildable, for: FooNoUse do
   def default(:reversible?), do: @reversible?
 
   ##############################################
-  # Protocol callbacks
+  # Protocol & Behaviour callbacks
+  @impl Buildable.Behaviour
+  def extract(buildable) do
+    extract(buildable, default(:extract_position))
+  end
+
   @impl Buildable
   def extract(struct, position)
 
@@ -99,30 +104,25 @@ defimpl Buildable, for: FooNoUse do
     :error
   end
 
+  @impl Buildable.Behaviour
+  def insert(buildable, term) do
+    insert(buildable, term, default(:insert_position))
+  end
+
   @impl Buildable
   def insert(%Foo{map: map} = struct, {key, value}, position) when is_position(position) do
     %{struct | map: put_in(map, [key], value)}
   end
 
   @impl Buildable
-  def extract(buildable) do
-    extract(buildable, default(:extract_position))
-  end
-
-  @impl Buildable
-  def insert(buildable, term) do
-    insert(buildable, term, default(:insert_position))
-  end
-
-  @impl Buildable
   defdelegate into(buildable), to: Buildable.Collectable
 
-  @impl Buildable
+  @impl Buildable.Behaviour
   def peek(buildable) do
     peek(buildable, default(:extract_position))
   end
 
-  @impl Buildable
+  @impl Buildable.Behaviour
   def peek(buildable, position) when is_position(position) do
     case extract(buildable, position) do
       {:ok, element, _rest_buildable} ->

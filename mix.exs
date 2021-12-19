@@ -28,9 +28,9 @@ defmodule Buildable.MixProject do
   defp deps do
     [
       {:benchee, "~> 1.0", only: :dev},
-      {:credo, "~> 1.5", only: [:dev, :test], runtime: false},
+      {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.0", only: [:dev, :test], runtime: false},
-      {:ex_doc, "~> 0.23", only: [:dev, :test], runtime: false},
+      {:ex_doc, "~> 0.26", only: [:dev, :test], runtime: false},
       {:coverex, "~> 1.5", only: :test}
     ]
   end
@@ -41,8 +41,8 @@ defmodule Buildable.MixProject do
 
   defp aliases do
     [
-      "test.all": ["lint", "docs", "credo", "dialyzer", "test"],
-      lint: ["format --check-formatted"]
+      "test.all": ["compile --warnings-as-errors", "lint", "docs", "dialyzer", "test"],
+      lint: ["format --check-formatted", "credo"]
     ]
   end
 

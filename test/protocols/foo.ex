@@ -24,14 +24,12 @@ defimpl Buildable, for: Foo do
   defguard size(struct) when map_size(:erlang.map_get(:map, struct))
 
   ##############################################
-  # Behaviour callbacks
+  # Protocol and Behaviour callbacks
 
-  @impl true
+  @impl Buildable.Behaviour
   def empty(_options), do: %Foo{}
 
-  ##############################################
-  # Protocol callbacks
-  @impl true
+  @impl Buildable
   def extract(struct, position)
 
   def extract(%Foo{map: map} = struct, :first)
@@ -47,11 +45,11 @@ defimpl Buildable, for: Foo do
     {:ok, {key, value}, %{struct | map: rest}}
   end
 
-  def extract(struct, position) when size(struct) == 0 and is_position(position) do
+  def extract(%Foo{} = struct, position) when size(struct) == 0 and is_position(position) do
     :error
   end
 
-  @impl true
+  @impl Buildable
   def insert(%Foo{map: map} = struct, {key, value}, position) when is_position(position) do
     %{struct | map: put_in(map, [key], value)}
   end

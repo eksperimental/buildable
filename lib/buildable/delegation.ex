@@ -15,38 +15,39 @@ defmodule Buildable.Delegation do
       @impl Buildable.Behaviour
       defdelegate empty(options \\ []), to: Buildable.unquote(__CALLER__.module)
 
-      @impl Buildable
-      defdelegate extract(buildable), to: Buildable
+      @impl Buildable.Behaviour
+      defdelegate extract(buildable), to: Buildable.unquote(__CALLER__.module)
 
       @impl Buildable
-      defdelegate extract(buildable, position), to: Buildable
+      defdelegate extract(buildable, position), to: Buildable.unquote(__CALLER__.module)
+
+      @impl Buildable.Behaviour
+      defdelegate insert(buildable, term), to: Buildable.unquote(__CALLER__.module)
 
       @impl Buildable
-      defdelegate insert(buildable, term), to: Buildable
+      defdelegate insert(buildable, term, position), to: Buildable.unquote(__CALLER__.module)
 
       @impl Buildable
-      defdelegate insert(buildable, term, position), to: Buildable
-
-      @impl Buildable
-      defdelegate into(buildable), to: Buildable
+      defdelegate into(buildable), to: Buildable.unquote(__CALLER__.module)
 
       @impl Buildable.Behaviour
       defdelegate new(enumerable, options \\ []), to: Buildable.unquote(__CALLER__.module)
 
-      @impl Buildable
-      defdelegate peek(buildable), to: Buildable
+      @impl Buildable.Behaviour
+      defdelegate peek(buildable), to: Buildable.unquote(__CALLER__.module)
+
+      @impl Buildable.Behaviour
+      defdelegate peek(buildable, position), to: Buildable.unquote(__CALLER__.module)
 
       @impl Buildable
-      defdelegate peek(buildable, position), to: Buildable
+      defdelegate reduce(buildable, acc, reducer_function),
+        to: Buildable.unquote(__CALLER__.module)
 
       @impl Buildable
-      defdelegate reduce(buildable, acc, reducer_function), to: Buildable
+      defdelegate reverse(buildable), to: Buildable.unquote(__CALLER__.module)
 
       @impl Buildable
-      defdelegate reverse(buildable), to: Buildable
-
-      @impl Buildable
-      defdelegate to_empty(buildable, options \\ []), to: Buildable
+      defdelegate to_empty(buildable, options \\ []), to: Buildable.unquote(__CALLER__.module)
     end
   end
 end
