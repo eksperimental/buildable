@@ -13,7 +13,12 @@ defmodule Buildable.MixProject do
       preferred_cli_env: ["test.all": :test],
       test_coverage: [tool: Coverex.Task],
       dialyzer: [ignore_warnings: "dialyzer.ignore-warnings"],
-      docs: docs()
+      docs:
+        if Mix.env() == :test do
+          docs() |> Keyword.put(:output, "tmp/doc")
+        else
+          docs()
+        end
     ]
   end
 
